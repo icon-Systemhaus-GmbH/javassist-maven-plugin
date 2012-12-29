@@ -1,0 +1,74 @@
+h1. Javassist Maven Plugin
+
+p. A simple Maven plugin that can apply Javassist tranformation on classes after compilation.
+
+h2. How to use it
+
+p. Include the plugin on your @pom.xml@ descriptor:
+
+bc.. 
+	<plugin>
+		<groupId>com.github.drochetti</groupId>
+		<artifactId>javassist-maven-plugin</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<configuration>
+			<includeTestClasses>false</includeTestClasses>
+			<transformerClasses>
+				<transformerClass>com.domain.ToStringTransformer</transformerClass>
+			</transformerClasses>
+		</configuration>
+		<executions>
+			<execution>
+				<phase>process-classes</phase>
+				<goals>
+					<goal>javassist</goal>
+				</goals>
+			</execution>
+		</executions>
+	</plugin>
+
+p. You must implement Class transformers, here's one simple example (at least, not a "logger" one).
+
+bc.. 
+/**
+ * Silly transformer, used to hack the toString method.
+ */
+public class ToStringTransformer extends ClassTransformer {
+
+	/**
+	 * We'll only transform subtypes of MyInterface.
+	 */
+	@Override
+	protected boolean filter(CtClass candidateClass) throws Exception {
+		CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
+		return !candidateClass.equals(myInterface) && candidateClass.subtypeOf(myInterface);
+	}
+
+	/**
+	 * Hack the toString() method.
+	 */
+	@Override
+	protected void applyTransformations(CtClass classToTransform) throws Exception {
+		// Actually you must test if it exists, but it's just an example...
+		CtMethod toStringMethod = classToTransform.getDeclaredMethod("toString");
+		classToTransform.removeMethod(toStringMethod);
+
+		CtMethod hackedToStringMethod = CtNewMethod.make(
+				"public String toString() { return \"toString() hacked by Javassist\"; }",
+				classToTransform);
+		classToTransform.addMethod(hackedToStringMethod);
+	}
+
+}
+
+h2. Known limitations
+
+* Not published on Maven Central or Sonatype OSS repos yet (Critical);
+* Don't instrument classes inside .jar files, only classes on your project;
+* Lack of unit tests and sample app;
+* Further implementations of @com.github.drochetti.javassist.maven.ClassTransformer@ can enable easier interactions with the Javassist API (provide some utilities).
+
+h2. How to contribute?
+
+p. If you think this project is useful for you, them there's a huge chance it's useful to others, so please feel free
+to fork, fix it, improve it and test it (the "Known limitations" above is a great way to start).
