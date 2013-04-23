@@ -44,67 +44,90 @@ import org.apache.maven.project.MavenProject;
 	requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class JavassistMojo extends AbstractMojo {
 
-	@Parameter(defaultValue = "${project}", property = "project", required = true, readonly = true)
-	private MavenProject project;
+  private static final Class<ClassTransformer> TRANSFORMER_TYPE = ClassTransformer.class;
 
-	@Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)
-	private File outputDirectory;
+  @Parameter(defaultValue = "${project}", property = "project", required = true, readonly = true)
+  private MavenProject project;
 
-	@Parameter(defaultValue = "true", property = "includeTestClasses", required = true)
-	private Boolean includeTestClasses;
+  @Parameter(defaultValue = "true", property = "includeTestClasses", required = true)
+  private Boolean includeTestClasses;
 
-	@Parameter(property = "transformerClasses", required = true)
-	private String[] transformerClasses;
+  @Parameter(property = "transformerClasses", required = true)
+  private String[] transformerClasses;
 
-	public void execute() throws MojoExecutionException {
-		try {
-			final List<URL> classPath = new ArrayList<URL>();
-			final String outputDirectory = project.getBuild().getOutputDirectory();
-			final String testOutputDirectory = project.getBuild().getTestOutputDirectory();
-			final List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-			for (String runtimeResource : runtimeClasspathElements) {
-				classPath.add(resolveUrl(runtimeResource));
-			}
-			classPath.add(resolveUrl(outputDirectory));
-			if (includeTestClasses) {
-				classPath.add(resolveUrl(testOutputDirectory));
-			}
-			loadClassPath(classPath.toArray(new URL[classPath.size()]));
+  @SuppressWarnings("unchecked")
+  public void execute() throws MojoExecutionException {
+    try {
+      final List<URL> classPath = new ArrayList<URL>();
+      final String outputDirectory = project.getBuild().getOutputDirectory();
+      final String testOutputDirectory = project.getBuild().getTestOutputDirectory();
+      final List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
+      for (final String runtimeResource : runtimeClasspathElements) {
+        classPath.add(resolveUrl(runtimeResource));
+      }
+      classPath.add(resolveUrl(outputDirectory));
+      if (includeTestClasses) {
+        classPath.add(resolveUrl(testOutputDirectory));
+      }
+      loadClassPath(classPath.toArray(new URL[classPath.size()]));
 
-			ClassLoader contextClassLoader = currentThread().getContextClassLoader();
-			Class<ClassTransformer> transformerType = ClassTransformer.class;
-			for (String transformerClassName : transformerClasses) {
-				Class transformerClass = Class.forName(transformerClassName.trim(), true, contextClassLoader);
-				if (transformerType.isAssignableFrom(transformerClass)) {
-					ClassTransformer transformer = transformerType.cast(transformerClass.newInstance());
-					transformer.transform(outputDirectory);
-					if (includeTestClasses) {
-						transformer.transform(testOutputDirectory);
-					}
-				} else {
-					throw new MojoExecutionException("Transformer class must inherit from " + transformerType.getName());
-				}
-			}
+      final ClassLoader contextClassLoader = currentThread().getContextClassLoader();
+      for (final String transformerClassName : transformerClasses) {
+        final ClassTransformer transformer = instantiateTransformerClass(contextClassLoader, transformerClassName);
+        transformer.transform(outputDirectory);
+        if (includeTestClasses) {
+          transformer.transform(testOutputDirectory);
+        }
 
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			throw new MojoExecutionException(e.getMessage(), e);
-		}
-	}
+      }
 
-	private void loadClassPath(URL... urls) {
-		ClassLoader contextClassLoader = currentThread().getContextClassLoader();
-		URLClassLoader pluginClassLoader = URLClassLoader.newInstance(urls, contextClassLoader);
-		ClassPool.getDefault().insertClassPath(new LoaderClassPath(pluginClassLoader));
-		currentThread().setContextClassLoader(pluginClassLoader);
-	}
+    } catch (final Exception e) {
+      getLog().error(e.getMessage(), e);
+      throw new MojoExecutionException(e.getMessage(), e);
+    }
+  }
 
-	private URL resolveUrl(String resource) {
-		try {
-			return new File(resource).toURI().toURL();
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-	}
+  /**
+   * @param contextClassLoader
+   * @param transformerClassName
+   * @return new instance of passed transformer class name
+   * @throws ClassNotFoundException
+   * @throws NullPointerException
+   * @throws InstantiationException
+   * @throws IllegalAccessException
+   * @throws MojoExecutionException
+   */
+  protected ClassTransformer instantiateTransformerClass(final ClassLoader contextClassLoader,
+                                                       final String transformerClassName)
+                                                                                         throws ClassNotFoundException,
+                                                                                         NullPointerException,
+                                                                                         InstantiationException,
+                                                                                         IllegalAccessException,
+                                                                                         MojoExecutionException {
+    if( null == transformerClassName || transformerClassName.trim().isEmpty()) {
+      throw new MojoExecutionException("Invalid class name passed");
+    }
+    final Class<?> transformerClass = Class.forName(transformerClassName.trim(), true, contextClassLoader);
+    if (TRANSFORMER_TYPE.isAssignableFrom(transformerClass)) {
+      return TRANSFORMER_TYPE.cast(transformerClass.newInstance());
+    } else {
+      throw new MojoExecutionException("Transformer class must inherit from " + TRANSFORMER_TYPE.getName());
+    }
+  }
+
+  private void loadClassPath(final URL ... urls) {
+    final ClassLoader contextClassLoader = currentThread().getContextClassLoader();
+    final URLClassLoader pluginClassLoader = URLClassLoader.newInstance(urls, contextClassLoader);
+    ClassPool.getDefault().insertClassPath(new LoaderClassPath(pluginClassLoader));
+    currentThread().setContextClassLoader(pluginClassLoader);
+  }
+
+  private URL resolveUrl(final String resource) {
+    try {
+      return new File(resource).toURI().toURL();
+    } catch (final MalformedURLException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
 
 }
