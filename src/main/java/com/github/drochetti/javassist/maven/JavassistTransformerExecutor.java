@@ -4,25 +4,23 @@ import static java.lang.Thread.currentThread;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.List;
 
 import javassist.ClassPool;
 import javassist.LoaderClassPath;
 
 public class JavassistTransformerExecutor {
 
-	private List<URL> classPath;
+	private URL[] additionalClassPath;
 	private ClassTransformer[] transformerInstances;
 	private String outputDirectory;
 
-	public void setClassPath(final List<URL> classPath) {
-		this.classPath = classPath;
+	public void setAdditionalClassPath(final URL... additionalClassPath) {
+		this.additionalClassPath = additionalClassPath;
 	}
 
-	public void setTransformarClasses(
+	public void setTransformerClasses(
 			final ClassTransformer... transformerInstances) {
 		this.transformerInstances = transformerInstances;
-
 	}
 
 	public void setOutputDirectory(final String outputDirectory) {
@@ -30,13 +28,13 @@ public class JavassistTransformerExecutor {
 	}
 
 	public void execute() throws Exception {
-		loadClassPath(classPath.toArray(new URL[classPath.size()]));
+		loadAdditionalClassPath(additionalClassPath);
 		for (final ClassTransformer transformer : transformerInstances) {
 			transformer.transform(outputDirectory);
 		}
 	}
 
-	private void loadClassPath(final URL... urls) {
+	private void loadAdditionalClassPath(final URL... urls) {
 		final ClassLoader contextClassLoader = currentThread()
 				.getContextClassLoader();
 		final URLClassLoader pluginClassLoader = URLClassLoader.newInstance(

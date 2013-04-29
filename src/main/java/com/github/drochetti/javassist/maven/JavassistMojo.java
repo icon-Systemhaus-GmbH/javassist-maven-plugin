@@ -69,8 +69,8 @@ public class JavassistMojo extends AbstractMojo {
 			}
 			classPath.add(resolveUrl(outputDirectory));
 
-			executor.setClassPath(classPath);
-			executor.setTransformarClasses(instantiateTransformerClasses(
+			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath.size()]));
+			executor.setTransformerClasses(instantiateTransformerClasses(
 					currentThread().getContextClassLoader(), transformerClasses));
 
 			executor.setOutputDirectory(outputDirectory);
