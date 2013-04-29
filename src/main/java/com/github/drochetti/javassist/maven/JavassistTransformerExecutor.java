@@ -35,6 +35,9 @@ public class JavassistTransformerExecutor {
 	}
 
 	private void loadAdditionalClassPath(final URL... urls) {
+		if( null == urls || urls.length <= 0 ) {
+			return;
+		}
 		final ClassLoader contextClassLoader = currentThread()
 				.getContextClassLoader();
 		final URLClassLoader pluginClassLoader = URLClassLoader.newInstance(

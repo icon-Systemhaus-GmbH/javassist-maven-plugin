@@ -93,6 +93,9 @@ public abstract class ClassTransformer {
 							"current classpath (usually your class depends on \"provided\" scoped dependencies).",
 							className);
 					continue;
+				} catch ( Exception ex) { // EOFException ...
+					logger.error("Class {} could not not be instrumented due to initialize FAILED.",className, ex);
+					continue;
 				}
 				if (filter(candidateClass)) {
 					applyTransformations(candidateClass);
