@@ -90,7 +90,7 @@ public abstract class ClassTransformer {
 			classPool.appendClassPath(dir);
 			classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
 			classPool.appendSystemPath();
-			debugClassPath(classPool);
+			debugClassLoader(classPool);
 			final Iterator<String> classNames = iterateClassnames(dir);
 			while (classNames.hasNext()) {
 				final String className = classNames.next();
@@ -152,7 +152,7 @@ public abstract class ClassTransformer {
 		candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
 	}
 
-	private void debugClassPath(final ClassPool classPool) {
+	private void debugClassLoader(final ClassPool classPool) {
 		if (!logger.isDebugEnabled()) {
 			return;
 		}
