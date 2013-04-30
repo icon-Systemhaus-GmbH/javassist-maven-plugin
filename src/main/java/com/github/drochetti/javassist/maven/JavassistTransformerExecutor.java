@@ -13,6 +13,16 @@ public class JavassistTransformerExecutor {
 	private URL[] additionalClassPath;
 	private ClassTransformer[] transformerInstances;
 	private String outputDirectory;
+	private ClassLoader originalContextClassLoader = null;
+	private ClassLoader externalClassLoader;
+
+	public JavassistTransformerExecutor() {
+		this((ClassLoader)null);
+	}
+
+	public JavassistTransformerExecutor(final ClassLoader classLoader) {
+		this.externalClassLoader = classLoader;
+	}
 
 	public void setAdditionalClassPath(final URL... additionalClassPath) {
 		this.additionalClassPath = additionalClassPath;
@@ -28,10 +38,15 @@ public class JavassistTransformerExecutor {
 	}
 
 	public void execute() throws Exception {
+		originalContextClassLoader = currentThread().getContextClassLoader();
+		if( externalClassLoader != null && externalClassLoader != originalContextClassLoader) {
+			currentThread().setContextClassLoader(externalClassLoader);
+		}
 		loadAdditionalClassPath(additionalClassPath);
 		for (final ClassTransformer transformer : transformerInstances) {
 			transformer.transform(outputDirectory);
 		}
+		currentThread().setContextClassLoader(originalContextClassLoader);
 	}
 
 	private void loadAdditionalClassPath(final URL... urls) {
