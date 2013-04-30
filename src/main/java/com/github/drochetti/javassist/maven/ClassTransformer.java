@@ -15,14 +15,18 @@
  */
 package com.github.drochetti.javassist.maven;
 
-import static org.apache.commons.io.FileUtils.iterateFiles;
+import org.apache.commons.io.FileUtils;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.slf4j.Logger;
@@ -59,7 +63,7 @@ public abstract class ClassTransformer {
 	 * @return {@code true} if the Class should be transformed; {@code false} otherwise.
 	 * @throws Exception
 	 */
-	protected boolean filter(CtClass candidateClass) throws Exception {
+	protected boolean filter(final CtClass candidateClass) throws Exception {
 		return true;
 	}
 
@@ -75,39 +79,95 @@ public abstract class ClassTransformer {
 	 * @param dir root directory.
 	 * @see #applyTransformations(CtClass)
 	 */
-	public final void transform(String dir) {
+	public final void transform(final String dir) {
+		if( null == dir || dir.trim().isEmpty()) {
+			return;
+		}
 		try {
-			final ClassPool classPool = ClassPool.getDefault();
-			final String[] extensions = { "class" };
-			Iterator<File> classFiles = iterateFiles(new File(dir), extensions, true);
-			while (classFiles.hasNext()) {
-				File classFile = classFiles.next();
-				String qualifiedFileName = classFile.getCanonicalPath().substring(dir.length() + 1);
-				String className = removeExtension(qualifiedFileName.replace(File.separator, "."));
-				CtClass candidateClass = null;
+			// create new classpool for transform; don't blow up the default
+			final ClassPool classPool = new ClassPool(ClassPool.getDefault());
+			classPool.childFirstLookup = true;
+			classPool.appendClassPath(dir);
+			classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
+			classPool.appendSystemPath();
+			debugClassLoader(classPool);
+			final Iterator<String> classNames = iterateClassnames(dir);
+			while (classNames.hasNext()) {
+				final String className = classNames.next();
 				try {
-					candidateClass = classPool.get(className);
+					classPool.importPackage(className);
+					final CtClass candidateClass = classPool.get(className);
 					initializeClass(candidateClass);
-				} catch (NotFoundException e) {
+					if (filter(candidateClass)) {
+						applyTransformations(candidateClass);
+						candidateClass.writeFile(dir);
+						logger.debug("Class {} instrumented by {}", className, getClass().getName());
+					}
+				} catch (final NotFoundException e) {
 					logger.warn("Class {} could not not be resolved due to dependencies not found on " +
 							"current classpath (usually your class depends on \"provided\" scoped dependencies).",
 							className);
 					continue;
-				}
-				if (filter(candidateClass)) {
-					applyTransformations(candidateClass);
-					candidateClass.writeFile(dir);
-					logger.info("Class {} instrumented by {}", className, getClass().getName());
+				} catch ( final Exception ex) { // EOFException ...
+					logger.error("Class {} could not not be instrumented due to initialize FAILED.",className, ex);
+					continue;
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
 
-	private void initializeClass(CtClass candidateClass) throws NotFoundException {
+	protected Iterator<String> iterateClassnames(final String dir) {
+		
+		return new Iterator<String>() {
+			final String[] extensions = { "class" };
+			final Iterator<File> classFiles = FileUtils.iterateFiles(new File(dir), extensions, true);
+
+			@Override
+			public boolean hasNext() {
+				return classFiles.hasNext();
+			}
+
+			@Override
+			public String next() {
+				final File classFile = classFiles.next();
+				try {
+					final String qualifiedFileName = classFile.getCanonicalPath().substring(dir.length() + 1);
+					return removeExtension(qualifiedFileName.replace(File.separator, "."));
+				} catch (final IOException e) {
+					throw new RuntimeException(e.getMessage());
+				}
+			}
+
+			@Override
+			public void remove() {
+				classFiles.remove();
+			}
+		};
+	}
+
+	private void initializeClass(final CtClass candidateClass) throws NotFoundException {
 		// TODO hack to initialize class to avoid further NotFoundException (what's the right way of doing this?)
 		candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
+	}
+
+	private void debugClassLoader(final ClassPool classPool) {
+		if (!logger.isDebugEnabled()) {
+			return;
+		}
+		logger.debug(" - classPool: " + classPool.toString());
+		ClassLoader classLoader = classPool.getClassLoader();
+		while (classLoader != null) {
+			logger.debug(" -- " + classLoader.getClass().getName() + ": "
+					+ classLoader.toString());
+			if (classLoader instanceof URLClassLoader) {
+				logger.debug(" --- urls: "
+						+ Arrays.deepToString(((URLClassLoader) classLoader)
+								.getURLs()));
+			}
+			classLoader = classLoader.getParent();
+		}
 	}
 
 }
