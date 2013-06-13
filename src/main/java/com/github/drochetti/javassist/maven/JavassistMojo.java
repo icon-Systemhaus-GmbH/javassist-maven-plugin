@@ -163,7 +163,10 @@ public class JavassistMojo extends AbstractMojo {
 	 * @param properties - maybe <code>null</code> or empty
 	 */
 	protected void configureTransformerInstance(final ClassTransformer transformerInstance, final Properties properties) {
-		// 
+		if( null == transformerInstance ) {
+			return;
+		}
+		transformerInstance.configure(properties);
 	}
 
 	private URL resolveUrl(final String resource) {
