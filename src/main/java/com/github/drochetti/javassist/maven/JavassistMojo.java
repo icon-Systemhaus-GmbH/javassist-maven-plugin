@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -51,7 +52,7 @@ public class JavassistMojo extends AbstractMojo {
 	private Boolean includeTestClasses;
 
 	@Parameter(property = "transformerClasses", required = true)
-	private String[] transformerClasses;
+	private ClassTransformerConfiguration[] transformerClasses;
 
 	@SuppressWarnings("unchecked")
 	public void execute() throws MojoExecutionException {
@@ -69,7 +70,8 @@ public class JavassistMojo extends AbstractMojo {
 			}
 			classPath.add(resolveUrl(outputDirectory));
 
-			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath.size()]));
+			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath
+					.size()]));
 			executor.setTransformerClasses(instantiateTransformerClasses(
 					currentThread().getContextClassLoader(), transformerClasses));
 
@@ -89,35 +91,42 @@ public class JavassistMojo extends AbstractMojo {
 
 	/**
 	 * @param contextClassLoader
-	 * @param transformerClassNames
+	 * @param transformerClasses
 	 * @return array of passed transformer class name instances
 	 * @throws ClassNotFoundException
 	 * @throws NullPointerException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 * @throws MojoExecutionException
+	 * @see #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)
 	 */
 	protected ClassTransformer[] instantiateTransformerClasses(
 			final ClassLoader contextClassLoader,
-			final String... transformerClassNames)
+			final ClassTransformerConfiguration... transformerClasses)
 			throws ClassNotFoundException, NullPointerException,
 			InstantiationException, IllegalAccessException,
 			MojoExecutionException {
-		if (null == transformerClassNames || transformerClassNames.length <= 0) {
-			throw new MojoExecutionException("Invalid class name passed");
+		if (null == transformerClasses || transformerClasses.length <= 0) {
+			throw new MojoExecutionException(
+					"Invalid transformer classes passed");
 		}
 		final List<ClassTransformer> transformerInstances = new LinkedList<ClassTransformer>();
-		for (String transformerClassName : transformerClassNames) {
-			transformerInstances.add(instantiateTransformerClass(
-					contextClassLoader, transformerClassName));
+		for (ClassTransformerConfiguration transformerClass : transformerClasses) {
+			final ClassTransformer transformerInstance = instantiateTransformerClass(
+					contextClassLoader, transformerClass);
+			configureTransformerInstance(transformerInstance,
+					transformerClass.getProperties());
+			transformerInstances.add(transformerInstance);
 		}
 		return transformerInstances
 				.toArray(new ClassTransformer[transformerInstances.size()]);
 	}
 
 	/**
+	 * Instantiate the class passed by {@link ClassTransformerConfiguration} configuration object.
+	 * 
 	 * @param contextClassLoader
-	 * @param transformerClassName
+	 * @param transformerClass
 	 * @return new instance of passed transformer class name
 	 * @throws ClassNotFoundException
 	 * @throws NullPointerException
@@ -127,22 +136,34 @@ public class JavassistMojo extends AbstractMojo {
 	 */
 	protected ClassTransformer instantiateTransformerClass(
 			final ClassLoader contextClassLoader,
-			final String transformerClassName) throws ClassNotFoundException,
-			NullPointerException, InstantiationException,
-			IllegalAccessException, MojoExecutionException {
-		if (null == transformerClassName
-				|| transformerClassName.trim().isEmpty()) {
-			throw new MojoExecutionException("Invalid class name passed");
+			final ClassTransformerConfiguration transformerClass)
+			throws ClassNotFoundException, NullPointerException,
+			InstantiationException, IllegalAccessException,
+			MojoExecutionException {
+		if (null == transformerClass
+				|| transformerClass.getClassName().trim().isEmpty()) {
+			throw new MojoExecutionException(
+					"Invalid transformer class name passed");
 		}
-		final Class<?> transformerClass = Class.forName(
-				transformerClassName.trim(), true, contextClassLoader);
-		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClass)) {
-			return TRANSFORMER_TYPE.cast(transformerClass.newInstance());
+		final Class<?> transformerClassInstanz = Class.forName(transformerClass
+				.getClassName().trim(), true, contextClassLoader);
+		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstanz)) {
+			return TRANSFORMER_TYPE.cast(transformerClassInstanz.newInstance());
 		} else {
 			throw new MojoExecutionException(
 					"Transformer class must inherit from "
 							+ TRANSFORMER_TYPE.getName());
 		}
+	}
+
+	/**
+	 * Configure the passed {@link ClassTransformer} instance using the passed {@link Properties}.
+	 * 
+	 * @param transformerInstance - maybe <code>null</code>
+	 * @param properties - maybe <code>null</code> or empty
+	 */
+	protected void configureTransformerInstance(final ClassTransformer transformerInstance, final Properties properties) {
+		// 
 	}
 
 	private URL resolveUrl(final String resource) {

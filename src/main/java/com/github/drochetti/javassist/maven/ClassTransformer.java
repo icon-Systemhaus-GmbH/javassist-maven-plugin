@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Properties;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -65,6 +66,14 @@ public abstract class ClassTransformer {
 	 */
 	protected boolean filter(final CtClass candidateClass) throws Exception {
 		return true;
+	}
+
+	/**
+	 * <p>Configure this instance by passing {@link Properties}.</p>
+	 * @param properties maybe <code>null</code> or empty
+	 */
+	protected void configure(final Properties properties) {
+		return;
 	}
 
 	/**
