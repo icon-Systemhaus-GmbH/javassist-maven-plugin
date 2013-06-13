@@ -14,7 +14,15 @@ bc..
 		<configuration>
 			<includeTestClasses>false</includeTestClasses>
 			<transformerClasses>
-				<transformerClass>com.domain.ToStringTransformer</transformerClass>
+				<transformerClass>
+				    <className>com.domain.ToStringTransformer</className>
+				    <properties>
+				        <property>
+				            <name>append.value</name>
+				            <value> and ToStringTransformer</value>
+				        </property>
+				    </properties>
+				</transformerClass>
 			</transformerClasses>
 		</configuration>
 		<executions>
@@ -35,6 +43,10 @@ bc..
  */
 public class ToStringTransformer extends ClassTransformer {
 
+    private static final String = APPEND_VALUE_PROPERTY_KEY = "append.value"; 
+
+    private String appendValue;
+
 	/**
 	 * We'll only transform subtypes of MyInterface.
 	 */
@@ -54,11 +66,21 @@ public class ToStringTransformer extends ClassTransformer {
 		classToTransform.removeMethod(toStringMethod);
 
 		CtMethod hackedToStringMethod = CtNewMethod.make(
-				"public String toString() { return \"toString() hacked by Javassist\"; }",
+				"public String toString() { return \"toString() hacked by Javassist"+(this.appendValue != null ? this.appendValue:"")+"\"; }",
 				classToTransform);
 		classToTransform.addMethod(hackedToStringMethod);
 	}
 
+    /**
+     * 
+     */
+    @Override
+    protected void configure(final Properties properties) {
+        if( null == properties ) {
+            return;
+        }
+        this.appendValue = properties.getProperty(APPEND_VALUE_PROPERTY_KEY);
+    }
 }
 
 h2. Known limitations
