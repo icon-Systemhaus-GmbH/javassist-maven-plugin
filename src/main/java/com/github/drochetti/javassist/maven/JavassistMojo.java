@@ -94,20 +94,14 @@ public class JavassistMojo extends AbstractMojo {
 	 * @param contextClassLoader
 	 * @param transformerClasses
 	 * @return array of passed transformer class name instances
-	 * @throws ClassNotFoundException
-	 * @throws NullPointerException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws MojoExecutionException
+	 * @throws Exception 
 	 * @see #instantiateTransformerClass(ClassLoader,
 	 *      ClassTransformerConfiguration)
 	 */
 	protected ClassTransformer[] instantiateTransformerClasses(
 			final ClassLoader contextClassLoader,
 			final ClassTransformerConfiguration... transformerClasses)
-			throws ClassNotFoundException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			MojoExecutionException {
+			throws Exception {
 		if (null == transformerClasses || transformerClasses.length <= 0) {
 			throw new MojoExecutionException(
 					"Invalid transformer classes passed");
@@ -169,10 +163,11 @@ public class JavassistMojo extends AbstractMojo {
 	 *            - maybe <code>null</code>
 	 * @param properties
 	 *            - maybe <code>null</code> or empty
+	 * @throws Exception 
 	 */
 	protected void configureTransformerInstance(
 			final ClassTransformer transformerInstance,
-			final Properties properties) {
+			final Properties properties) throws Exception {
 		if (null == transformerInstance) {
 			return;
 		}
