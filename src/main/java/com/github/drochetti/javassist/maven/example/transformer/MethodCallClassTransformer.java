@@ -29,7 +29,7 @@ import com.github.drochetti.javassist.maven.ClassTransformer;
 
 /**
  * Example of {@link ClassTransformer} implementation.
- *
+ * 
  * @author Uwe Barthel
  */
 public class MethodCallClassTransformer extends ClassTransformer {
@@ -62,10 +62,11 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	 * @param properties
 	 * @throws Exception
 	 */
-	// TODO: validate input; don't store properties directly (outside modification)
+	// TODO: validate input; don't store properties directly (outside
+	// modification)
 	@Override
 	public void configure(final Properties properties) throws Exception {
-		this.properties = null == properties? new Properties():properties;
+		this.properties = null == properties ? new Properties() : properties;
 	}
 
 	@Override
@@ -86,7 +87,13 @@ public class MethodCallClassTransformer extends ClassTransformer {
 				final String statement = getStatement(m.getClassName(),
 						m.getMethodName());
 				if (statement != null) {
-					m.replace(statement);
+					try {
+						m.replace(statement);
+					} catch (final CannotCompileException e) {
+						throw new CannotCompileException(String.format(
+								"Compile statement '%1$s' FAILED with: %2$s",
+								statement, e.getMessage()), e);
+					}
 				}
 			}
 		});
@@ -110,7 +117,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
 
 	// TODO: find better implementation
 	private String getStatement(final String className, final String methodName) {
-		if (null == properties || ( null == className && null == methodName)) {
+		if (null == properties || (null == className && null == methodName)) {
 			return null;
 		}
 		String statement = this.properties.getProperty(className + METHOD_TOKEN
