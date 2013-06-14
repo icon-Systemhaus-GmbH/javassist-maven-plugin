@@ -71,8 +71,9 @@ public abstract class ClassTransformer {
 	/**
 	 * <p>Configure this instance by passing {@link Properties}.</p>
 	 * @param properties maybe <code>null</code> or empty
+	 * @throws Exception 
 	 */
-	protected void configure(final Properties properties) {
+	public void configure(final Properties properties) throws Exception {
 		return;
 	}
 
