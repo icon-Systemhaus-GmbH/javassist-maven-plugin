@@ -56,7 +56,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	 * e.g.
 	 * 
 	 * <pre>
-	 * my.example.App#doSomthing={ $2="injected value for sec. parameter" $_ $proceed($$); }
+	 * my.example.App#doSomthing={ $2="injected value for sec. parameter"; $_ = $proceed($$); }
 	 * </pre>
 	 * 
 	 * @param properties
