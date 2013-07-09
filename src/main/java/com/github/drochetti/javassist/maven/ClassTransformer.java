@@ -15,7 +15,6 @@
  */
 package com.github.drochetti.javassist.maven;
 
-import org.apache.commons.io.FileUtils;
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 import java.io.File;
@@ -30,6 +29,13 @@ import javassist.CtClass;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,29 +134,36 @@ public abstract class ClassTransformer {
 		}
 	}
 
+	// TODO: maybe use RegexFileFilter instead of WildcardFileFilter
 	protected Iterator<String> iterateClassnames(final String dir) {
-		
 		return new Iterator<String>() {
-			final String[] extensions = { "class" };
-			final Iterator<File> classFiles = FileUtils.iterateFiles(new File(dir), extensions, true);
+			final String[] extensions = { ".class" };
+			final String innerClassWildcard = "*$*";
+			final File directory = new File(dir);
+			// only files with extension '.class' and NOT with '$' - for ignoring nested classes
+			// javassist doesn't support nested classes
+			// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
+			final IOFileFilter fileFilter = FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
+			final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
+			final Iterator<File> classFiles = FileUtils.iterateFiles(directory, fileFilter, dirFilter);
 
-			@Override
+//			@Override
 			public boolean hasNext() {
 				return classFiles.hasNext();
 			}
 
-			@Override
+//			@Override
 			public String next() {
 				final File classFile = classFiles.next();
 				try {
-					final String qualifiedFileName = classFile.getCanonicalPath().substring(dir.length() + 1);
+					final String qualifiedFileName = classFile.getCanonicalPath().substring(directory.getCanonicalPath().length() + 1);
 					return removeExtension(qualifiedFileName.replace(File.separator, "."));
 				} catch (final IOException e) {
 					throw new RuntimeException(e.getMessage());
 				}
 			}
 
-			@Override
+//			@Override
 			public void remove() {
 				classFiles.remove();
 			}
