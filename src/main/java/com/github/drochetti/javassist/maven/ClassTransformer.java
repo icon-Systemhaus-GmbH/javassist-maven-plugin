@@ -15,10 +15,7 @@
  */
 package com.github.drochetti.javassist.maven;
 
-import static org.apache.commons.io.FilenameUtils.removeExtension;
-
 import java.io.File;
-import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -73,7 +70,7 @@ public abstract class ClassTransformer {
 	protected boolean filter(final CtClass candidateClass) throws Exception {
 		return true;
 	}
-
+	
 	/**
 	 * <p>Configure this instance by passing {@link Properties}.</p>
 	 * @param properties maybe <code>null</code> or empty
@@ -85,39 +82,90 @@ public abstract class ClassTransformer {
 
 	/**
 	 * <p>
-	 * Search for class files on a directory, load each one as {@link CtClass}, filter
+	 * Search for class files on the passed directory, load each one as {@link CtClass}, filter
 	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
 	 * ({@link #applyTransformations(CtClass)}).
 	 * </p>
 	 * <p>
 	 * <strong>Limitation:</strong> do not search inside .jar files yet.
 	 * </p>
-	 * @param dir root directory.
+	 * @param dir root directory -input and output directory are the same.
+	 * @see #iterateClassnames(String)
+	 * @see #transform(Iterator, String)
 	 * @see #applyTransformations(CtClass)
+	 * 
 	 */
 	public final void transform(final String dir) {
 		if( null == dir || dir.trim().isEmpty()) {
+			return;
+		}
+		transform(dir,dir,iterateClassnames(dir));
+	}
+
+	/**
+	 * <p>
+	 * Search for class files on the passed input directory, load each one as {@link CtClass}, filter
+	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
+	 * ({@link #applyTransformations(CtClass)}).
+	 * </p>
+	 * <p>
+	 * <strong>Limitation:</strong> do not search inside .jar files yet.
+	 * </p>
+	 * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
+	 * @param outputDir if <code>null</code> or empty the inputDir will be used
+	 * @see #iterateClassnames(String)
+	 * @see #transform(Iterator, String)
+	 * @see #applyTransformations(CtClass)
+	 */
+	public void transform(final String inputDir, final String outputDir) {
+		if( null == inputDir || inputDir.trim().isEmpty()) {
+			return;
+		}
+		final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir:inputDir;
+		transform(inputDir, outDirectory,iterateClassnames(inputDir));
+	}
+
+	/**
+	 * <p>
+	 * Use the passed className iterator, load each one as {@link CtClass}, filter
+	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
+	 * ({@link #applyTransformations(CtClass)}).
+	 * </p>
+	 * <p>
+	 * <strong>Limitation:</strong> do not search inside .jar files yet.
+	 * </p>
+	 * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
+	 * @param outputDir must be not <code>null</code>
+	 * @see #applyTransformations(CtClass)
+	 */
+	public final void transform(final String inputDir,final String outputDir, final Iterator<String> classNames) {
+		if( null == classNames || !classNames.hasNext()) {
 			return;
 		}
 		try {
 			// create new classpool for transform; don't blow up the default
 			final ClassPool classPool = new ClassPool(ClassPool.getDefault());
 			classPool.childFirstLookup = true;
-			classPool.appendClassPath(dir);
+			classPool.appendClassPath(inputDir);
 			classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
 			classPool.appendSystemPath();
 			debugClassLoader(classPool);
-			final Iterator<String> classNames = iterateClassnames(dir);
+			int i = 0;
 			while (classNames.hasNext()) {
 				final String className = classNames.next();
+				if( null == className) {
+					continue;
+				}
 				try {
+					logger.debug("Got class name {}", className);
 					classPool.importPackage(className);
 					final CtClass candidateClass = classPool.get(className);
 					initializeClass(candidateClass);
 					if (filter(candidateClass)) {
 						applyTransformations(candidateClass);
-						candidateClass.writeFile(dir);
+						candidateClass.writeFile(outputDir);
 						logger.debug("Class {} instrumented by {}", className, getClass().getName());
+						++i;
 					}
 				} catch (final NotFoundException e) {
 					logger.warn("Class {} could not not be resolved due to dependencies not found on " +
@@ -129,6 +177,7 @@ public abstract class ClassTransformer {
 					continue;
 				}
 			}
+			logger.info("#{} classes instrumented by {}",i,getClass().getName());
 		} catch (final Exception e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}
@@ -136,38 +185,15 @@ public abstract class ClassTransformer {
 
 	// TODO: maybe use RegexFileFilter instead of WildcardFileFilter
 	protected Iterator<String> iterateClassnames(final String dir) {
-		return new Iterator<String>() {
-			final String[] extensions = { ".class" };
-			final String innerClassWildcard = "*$*";
-			final File directory = new File(dir);
-			// only files with extension '.class' and NOT with '$' - for ignoring nested classes
-			// javassist doesn't support nested classes
-			// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
-			final IOFileFilter fileFilter = FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
-			final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
-			final Iterator<File> classFiles = FileUtils.iterateFiles(directory, fileFilter, dirFilter);
-
-//			@Override
-			public boolean hasNext() {
-				return classFiles.hasNext();
-			}
-
-//			@Override
-			public String next() {
-				final File classFile = classFiles.next();
-				try {
-					final String qualifiedFileName = classFile.getCanonicalPath().substring(directory.getCanonicalPath().length() + 1);
-					return removeExtension(qualifiedFileName.replace(File.separator, "."));
-				} catch (final IOException e) {
-					throw new RuntimeException(e.getMessage());
-				}
-			}
-
-//			@Override
-			public void remove() {
-				classFiles.remove();
-			}
-		};
+		final String[] extensions = { ".class" };
+		final String innerClassWildcard = "*$*";
+		final File directory = new File(dir);
+		// only files with extension '.class' and NOT with '$' - for ignoring nested classes
+		// javassist doesn't support nested classes
+		// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
+		final IOFileFilter fileFilter = FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
+		final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
+		return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
 	}
 
 	private void initializeClass(final CtClass candidateClass) throws NotFoundException {
