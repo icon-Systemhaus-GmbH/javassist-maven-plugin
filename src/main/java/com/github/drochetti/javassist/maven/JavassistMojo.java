@@ -60,27 +60,29 @@ public class JavassistMojo extends AbstractMojo {
 		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
-			final String outputDirectory = project.getBuild()
+			final String inputDirectory = project.getBuild()
 					.getOutputDirectory();
-			final String testOutputDirectory = project.getBuild()
+			final String testInputDirectory = project.getBuild()
 					.getTestOutputDirectory();
 			final List<String> runtimeClasspathElements = project
 					.getRuntimeClasspathElements();
 			for (final String runtimeResource : runtimeClasspathElements) {
 				classPath.add(resolveUrl(runtimeResource));
 			}
-			classPath.add(resolveUrl(outputDirectory));
+			classPath.add(resolveUrl(inputDirectory));
 
 			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath
 					.size()]));
 			executor.setTransformerClasses(instantiateTransformerClasses(
 					currentThread().getContextClassLoader(), transformerClasses));
-
-			executor.setOutputDirectory(outputDirectory);
+			executor.setInputDirectory(inputDirectory);
+			executor.setOutputDirectory(inputDirectory);
 			executor.execute();
+
 			if (includeTestClasses) {
-				classPath.add(resolveUrl(testOutputDirectory));
-				executor.setOutputDirectory(testOutputDirectory);
+				classPath.add(resolveUrl(testInputDirectory));
+				executor.setInputDirectory(testInputDirectory);
+				executor.setOutputDirectory(testInputDirectory);
 				executor.execute();
 			}
 
