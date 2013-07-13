@@ -39,6 +39,7 @@ import org.apache.maven.project.MavenProject;
  * class transformations on compiled classes (bytecode instrumentation).
  * 
  * @author Daniel Rochetti
+ * @author Uwe Barthel
  */
 @Mojo(name = "javassist", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class JavassistMojo extends AbstractMojo {
@@ -59,27 +60,29 @@ public class JavassistMojo extends AbstractMojo {
 		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
-			final String outputDirectory = project.getBuild()
+			final String inputDirectory = project.getBuild()
 					.getOutputDirectory();
-			final String testOutputDirectory = project.getBuild()
+			final String testInputDirectory = project.getBuild()
 					.getTestOutputDirectory();
 			final List<String> runtimeClasspathElements = project
 					.getRuntimeClasspathElements();
 			for (final String runtimeResource : runtimeClasspathElements) {
 				classPath.add(resolveUrl(runtimeResource));
 			}
-			classPath.add(resolveUrl(outputDirectory));
+			classPath.add(resolveUrl(inputDirectory));
 
 			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath
 					.size()]));
 			executor.setTransformerClasses(instantiateTransformerClasses(
 					currentThread().getContextClassLoader(), transformerClasses));
-
-			executor.setOutputDirectory(outputDirectory);
+			executor.setInputDirectory(inputDirectory);
+			executor.setOutputDirectory(inputDirectory);
 			executor.execute();
+
 			if (includeTestClasses) {
-				classPath.add(resolveUrl(testOutputDirectory));
-				executor.setOutputDirectory(testOutputDirectory);
+				classPath.add(resolveUrl(testInputDirectory));
+				executor.setInputDirectory(testInputDirectory);
+				executor.setOutputDirectory(testInputDirectory);
 				executor.execute();
 			}
 
@@ -93,19 +96,14 @@ public class JavassistMojo extends AbstractMojo {
 	 * @param contextClassLoader
 	 * @param transformerClasses
 	 * @return array of passed transformer class name instances
-	 * @throws ClassNotFoundException
-	 * @throws NullPointerException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws MojoExecutionException
-	 * @see #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)
+	 * @throws Exception 
+	 * @see #instantiateTransformerClass(ClassLoader,
+	 *      ClassTransformerConfiguration)
 	 */
 	protected ClassTransformer[] instantiateTransformerClasses(
 			final ClassLoader contextClassLoader,
 			final ClassTransformerConfiguration... transformerClasses)
-			throws ClassNotFoundException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			MojoExecutionException {
+			throws Exception {
 		if (null == transformerClasses || transformerClasses.length <= 0) {
 			throw new MojoExecutionException(
 					"Invalid transformer classes passed");
@@ -123,7 +121,8 @@ public class JavassistMojo extends AbstractMojo {
 	}
 
 	/**
-	 * Instantiate the class passed by {@link ClassTransformerConfiguration} configuration object.
+	 * Instantiate the class passed by {@link ClassTransformerConfiguration}
+	 * configuration object.
 	 * 
 	 * @param contextClassLoader
 	 * @param transformerClass
@@ -140,15 +139,17 @@ public class JavassistMojo extends AbstractMojo {
 			throws ClassNotFoundException, NullPointerException,
 			InstantiationException, IllegalAccessException,
 			MojoExecutionException {
-		if (null == transformerClass
+		if (null == transformerClass || null == transformerClass.getClassName()
 				|| transformerClass.getClassName().trim().isEmpty()) {
 			throw new MojoExecutionException(
 					"Invalid transformer class name passed");
 		}
-		final Class<?> transformerClassInstanz = Class.forName(transformerClass
-				.getClassName().trim(), true, contextClassLoader);
-		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstanz)) {
-			return TRANSFORMER_TYPE.cast(transformerClassInstanz.newInstance());
+		final Class<?> transformerClassInstance = Class.forName(
+				transformerClass.getClassName().trim(), true,
+				contextClassLoader);
+		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstance)) {
+			return TRANSFORMER_TYPE
+					.cast(transformerClassInstance.newInstance());
 		} else {
 			throw new MojoExecutionException(
 					"Transformer class must inherit from "
@@ -157,13 +158,19 @@ public class JavassistMojo extends AbstractMojo {
 	}
 
 	/**
-	 * Configure the passed {@link ClassTransformer} instance using the passed {@link Properties}.
+	 * Configure the passed {@link ClassTransformer} instance using the passed
+	 * {@link Properties}.
 	 * 
-	 * @param transformerInstance - maybe <code>null</code>
-	 * @param properties - maybe <code>null</code> or empty
+	 * @param transformerInstance
+	 *            - maybe <code>null</code>
+	 * @param properties
+	 *            - maybe <code>null</code> or empty
+	 * @throws Exception 
 	 */
-	protected void configureTransformerInstance(final ClassTransformer transformerInstance, final Properties properties) {
-		if( null == transformerInstance ) {
+	protected void configureTransformerInstance(
+			final ClassTransformer transformerInstance,
+			final Properties properties) throws Exception {
+		if (null == transformerInstance) {
 			return;
 		}
 		transformerInstance.configure(properties);
