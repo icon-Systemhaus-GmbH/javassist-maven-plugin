@@ -24,30 +24,48 @@ import javassist.ClassPool;
 import javassist.LoaderClassPath;
 
 /**
- * Executer to perform the transformation by a list of {@link ClassTransformer} instances.
- *
+ * Executer to perform the transformation by a list of {@link ClassTransformer}
+ * instances.
+ * 
  * @author Uwe Barthel
  */
 public class JavassistTransformerExecutor {
 
 	private URL[] additionalClassPath;
 	private ClassTransformer[] transformerInstances;
+	private String inputDirectory;
 	private String outputDirectory;
 	private ClassLoader originalContextClassLoader = null;
 	private ClassLoader externalClassLoader;
 
 	public JavassistTransformerExecutor() {
-		this((ClassLoader)null);
+		this((ClassLoader) null);
 	}
 
+	/**
+	 * Use passed class loader as context class loader before {@link #execute()}
+	 * and reset afterwards.
+	 * 
+	 * @param classLoader
+	 */
 	public JavassistTransformerExecutor(final ClassLoader classLoader) {
 		this.externalClassLoader = classLoader;
 	}
 
+	/**
+	 * Passed {@link URL}s will be enriching the class path for transforming
+	 * 
+	 * @param additionalClassPath
+	 */
 	public void setAdditionalClassPath(final URL... additionalClassPath) {
 		this.additionalClassPath = additionalClassPath;
 	}
 
+	/**
+	 * Configure class transformer instances for use with this executor
+	 * 
+	 * @param transformerInstances
+	 */
 	public void setTransformerClasses(
 			final ClassTransformer... transformerInstances) {
 		this.transformerInstances = transformerInstances;
@@ -57,20 +75,40 @@ public class JavassistTransformerExecutor {
 		this.outputDirectory = outputDirectory;
 	}
 
+	protected String getOutputDirectory() {
+		return outputDirectory;
+	}
+
+	public void setInputDirectory(final String inputDirectory) {
+		this.inputDirectory = inputDirectory;
+	}
+
+	protected String getInputDirectory() {
+		return inputDirectory;
+	}
+
 	public void execute() throws Exception {
 		originalContextClassLoader = currentThread().getContextClassLoader();
-		if( externalClassLoader != null && externalClassLoader != originalContextClassLoader) {
+		if (externalClassLoader != null
+				&& externalClassLoader != originalContextClassLoader) {
 			currentThread().setContextClassLoader(externalClassLoader);
 		}
 		loadAdditionalClassPath(additionalClassPath);
 		for (final ClassTransformer transformer : transformerInstances) {
-			transformer.transform(outputDirectory);
+			execute(transformer);
 		}
 		currentThread().setContextClassLoader(originalContextClassLoader);
 	}
 
+	protected void execute(final ClassTransformer transformer) {
+		if (null == transformer) {
+			return;
+		}
+		transformer.transform(getInputDirectory(), getOutputDirectory());
+	}
+
 	private void loadAdditionalClassPath(final URL... urls) {
-		if( null == urls || urls.length <= 0 ) {
+		if (null == urls || urls.length <= 0) {
 			return;
 		}
 		final ClassLoader contextClassLoader = currentThread()
