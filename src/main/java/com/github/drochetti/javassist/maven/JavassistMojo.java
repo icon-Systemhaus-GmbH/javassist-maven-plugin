@@ -15,16 +15,6 @@
  */
 package com.github.drochetti.javassist.maven;
 
-import static java.lang.Thread.currentThread;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -32,6 +22,15 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Maven plugin that will apply <a
@@ -63,17 +62,18 @@ public class JavassistMojo extends AbstractMojo {
 					.getOutputDirectory();
 			final String testOutputDirectory = project.getBuild()
 					.getTestOutputDirectory();
-			final List<String> runtimeClasspathElements = project
-					.getRuntimeClasspathElements();
-			for (final String runtimeResource : runtimeClasspathElements) {
+			for (final String runtimeResource : (List<String>) project.getCompileClasspathElements()) {
 				classPath.add(resolveUrl(runtimeResource));
 			}
 			classPath.add(resolveUrl(outputDirectory));
 
-			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath
-					.size()]));
+            URL[] classPathArray = classPath.toArray(new URL[classPath.size()]);
+
+            ClassLoader classLoader = new URLClassLoader(classPathArray, Thread.currentThread().getContextClassLoader());
+
+			executor.setAdditionalClassPath(classPathArray);
 			executor.setTransformerClasses(instantiateTransformerClasses(
-					currentThread().getContextClassLoader(), transformerClasses));
+					classLoader, transformerClasses));
 
 			executor.setOutputDirectory(outputDirectory);
 			executor.execute();
@@ -145,6 +145,7 @@ public class JavassistMojo extends AbstractMojo {
 			throw new MojoExecutionException(
 					"Invalid transformer class name passed");
 		}
+
 		final Class<?> transformerClassInstanz = Class.forName(transformerClass
 				.getClassName().trim(), true, contextClassLoader);
 		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstanz)) {
