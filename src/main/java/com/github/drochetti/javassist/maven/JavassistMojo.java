@@ -55,15 +55,25 @@ public class JavassistMojo extends AbstractMojo {
 	@Parameter(property = "transformerClasses", required = true)
 	private ClassTransformerConfiguration[] transformerClasses;
 
+	/** Allows to customize the build directory of the project, used for both finding classes to transform and outputing them once transformed. 
+	 * By default, equals to maven's project output directory. */
+	@Parameter(property = "buildDir", required = false)
+	private String buildDir;
+
+	/** Allows to customize the build directory of the tests of the project, used for both finding classes to transform and outputing them once transformed. 
+	 * By default, equals to maven's project test output directory. */
+	@Parameter(property = "testBuildDir", required = false)
+	private String testBuildDir;
+
 	@SuppressWarnings("unchecked")
 	public void execute() throws MojoExecutionException {
 		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
-			final String inputDirectory = project.getBuild()
-					.getOutputDirectory();
-			final String testInputDirectory = project.getBuild()
-					.getTestOutputDirectory();
+			String inputDirectory = buildDir == null ? project.getBuild()
+					.getOutputDirectory() : buildDir;
+			String testInputDirectory = testBuildDir == null ? project.getBuild()
+					.getTestOutputDirectory() : testBuildDir;
 			final List<String> runtimeClasspathElements = project
 					.getRuntimeClasspathElements();
 			for (final String runtimeResource : runtimeClasspathElements) {
