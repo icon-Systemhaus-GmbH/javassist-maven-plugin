@@ -219,4 +219,7 @@ public abstract class ClassTransformer {
 		}
 	}
 
+	protected static Logger getLogger() {
+        return logger;
+    }
 }
