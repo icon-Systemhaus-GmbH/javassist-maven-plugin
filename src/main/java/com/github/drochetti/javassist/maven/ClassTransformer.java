@@ -186,12 +186,10 @@ public abstract class ClassTransformer {
 	// TODO: maybe use RegexFileFilter instead of WildcardFileFilter
 	protected Iterator<String> iterateClassnames(final String dir) {
 		final String[] extensions = { ".class" };
-		final String innerClassWildcard = "*$*";
 		final File directory = new File(dir);
-		// only files with extension '.class' and NOT with '$' - for ignoring nested classes
-		// javassist doesn't support nested classes
+		// WARNING : javassist has strong limitations when it comes to support of nested classes
 		// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
-		final IOFileFilter fileFilter = FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
+		final IOFileFilter fileFilter = new SuffixFileFilter(extensions);
 		final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
 		return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
 	}
