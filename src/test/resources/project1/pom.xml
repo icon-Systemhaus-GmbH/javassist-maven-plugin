@@ -23,10 +23,11 @@
 				<artifactId>javassist-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<configuration>
+					<project implementation="com.github.drochetti.javassist.maven.stubs.MyProjectStub" />
 					<includeTestClasses>false</includeTestClasses>
 					<transformerClasses>
 						<transformerClass>
-							<className>sample.TransformerClass</className>
+							<className>com.github.drochetti.javassist.maven.SampleTransformer</className>
 						</transformerClass>
 					</transformerClasses>
 				</configuration>

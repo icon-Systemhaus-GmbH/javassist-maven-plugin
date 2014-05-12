@@ -1,6 +1,9 @@
 package com.github.drochetti.javassist.maven;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 
 import org.apache.maven.plugin.testing.MojoRule;
 import org.junit.Rule;
@@ -24,8 +27,14 @@ public class JavassistMojoTest {
     };
 
     @Test
-    public void test() {
-        fail("Not yet implemented");
+    public void test() throws Exception {
+        File pom = new File( "src/test/resources/project1/pom.xml" );
+        assertNotNull( pom );
+        assertTrue( pom.exists() );
+
+        JavassistMojo mojo = (JavassistMojo) rule.lookupMojo( "javassist", pom );
+        assertNotNull( mojo );
+        mojo.execute();
     }
 
 
