@@ -11,13 +11,13 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.testing.stubs.MavenProjectStub;
 import org.codehaus.plexus.util.ReaderFactory;
 
-public class MyProjectStub
+public class Project2Stub
     extends MavenProjectStub
 {
     /**
      * Default constructor
      */
-    public MyProjectStub()
+    public Project2Stub()
     {
         MavenXpp3Reader pomReader = new MavenXpp3Reader();
         Model model;
@@ -61,6 +61,6 @@ public class MyProjectStub
     /** {@inheritDoc} */
     public File getBasedir()
     {
-        return new File( super.getBasedir() + "/src/test/resources/project1/" );
+        return new File( super.getBasedir() + "/src/test/resources/project2/" );
     }
 }
