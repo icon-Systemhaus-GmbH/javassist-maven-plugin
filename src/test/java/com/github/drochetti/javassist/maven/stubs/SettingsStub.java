@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.maven.settings.Settings;
 
+//TODO unused ?
 @SuppressWarnings("serial")
 public class SettingsStub
     extends Settings

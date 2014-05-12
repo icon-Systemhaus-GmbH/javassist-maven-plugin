@@ -27,12 +27,9 @@ import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,6 +188,7 @@ public abstract class ClassTransformer {
 		// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
 		final IOFileFilter fileFilter = new SuffixFileFilter(extensions);
 		final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
+		logger.debug("Scanning directory " + directory.getAbsolutePath());
 		return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
 	}
 
