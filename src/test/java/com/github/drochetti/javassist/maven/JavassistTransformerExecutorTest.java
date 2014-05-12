@@ -63,7 +63,7 @@ public class JavassistTransformerExecutorTest {
 
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class);
         mockTransformer.transform(EasyMock.anyString(), EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
+        EasyMock.expectLastCall();
         EasyMock.replay(mockTransformer);
 
         executor.setTransformerClasses(mockTransformer);
