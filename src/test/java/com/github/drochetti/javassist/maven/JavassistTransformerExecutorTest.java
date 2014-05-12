@@ -1,6 +1,6 @@
 package com.github.drochetti.javassist.maven;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,24 +16,35 @@ import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings("restriction")
 public class JavassistTransformerExecutorTest {
-
+    private final static File ROOT = new File("tmp");
+    
     @SuppressWarnings("resource")
-    @Before
-    public void setUp() throws Exception {
-        // Prepare source somehow.
-        String source = "package test; public class Test { static { System.out.println(\"hello\"); } public Test() { System.out.println(\"world\"); } }";
-
+    private void createOneTestClass(File root) throws IOException {
         // Save source in .java file.
-        File root = new File("tmp"); // On Windows running on C:\, this is C:\java.
+        String source = "package test; public class Test { static { System.out.println(\"hello\"); } public Test() { System.out.println(\"world\"); } }";
+        // Prepare source somehow.
         File sourceFile = new File(root, "test/Test.java");
         sourceFile.getParentFile().mkdirs();
         new FileWriter(sourceFile).append(source).close();
 
+        // Compile source file.
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        compiler.run(null, null, null, sourceFile.getPath());
+    }
+
+    @SuppressWarnings("resource")
+    private void createOneTestClassWithInner(File root) throws IOException {
+        // Save source in .java file.
+        String source = "package test; public class Test { static { System.out.println(\"hello\"); } public Test() { System.out.println(\"world\"); } class TestInner { } }";
+        // Prepare source somehow.
+        File sourceFile = new File(root, "test/Test.java");
+        sourceFile.getParentFile().mkdirs();
+        new FileWriter(sourceFile).append(source).close();
+        
         // Compile source file.
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         compiler.run(null, null, null, sourceFile.getPath());
@@ -68,6 +79,8 @@ public class JavassistTransformerExecutorTest {
     @Test
     public void testWithRealClass() throws Exception {
         //given
+        createOneTestClass(ROOT);
+
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 
         Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
@@ -96,6 +109,37 @@ public class JavassistTransformerExecutorTest {
         EasyMock.verify( mockTransformer );
         assertEquals("test.Test", capturedClass1.getValue().getName());
         assertEquals("test.Test", capturedClass2.getValue().getName());
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testWithRealClassAndInnerClass() throws Exception {
+        //given
+        createOneTestClassWithInner(ROOT);
+
+        JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
+        
+        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expectLastCall().times(2);
+        mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
+        EasyMock.expectLastCall().times(2);
+        EasyMock.replay(mockTransformer);
+
+        executor.setTransformerClasses(mockTransformer);
+        File root = new File("tmp");
+        executor.setAdditionalClassPath(root.toURL());
+        executor.setInputDirectory(root.getAbsolutePath());
+        executor.setOutputDirectory(root.getAbsolutePath());
+
+        //when
+        executor.execute();
+
+        //then
+        EasyMock.verify( mockTransformer );
     }
 
 }
