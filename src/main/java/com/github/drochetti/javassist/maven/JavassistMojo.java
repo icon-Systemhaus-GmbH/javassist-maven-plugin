@@ -56,24 +56,23 @@ public class JavassistMojo extends AbstractMojo {
 	private ClassTransformerConfiguration[] transformerClasses;
 
 	/** Allows to customize the build directory of the project, used for both finding classes to transform and outputing them once transformed. 
-	 * By default, equals to maven's project output directory. */
+	 * By default, equals to maven's project output directory. Path must be either absolute or relative to project base dir.*/
 	@Parameter(property = "buildDir", required = false)
 	private String buildDir;
 
 	/** Allows to customize the build directory of the tests of the project, used for both finding classes to transform and outputing them once transformed. 
-	 * By default, equals to maven's project test output directory. */
+	 * By default, equals to maven's project test output directory. Path must be either absolute or relative to project base dir.*/
 	@Parameter(property = "testBuildDir", required = false)
 	private String testBuildDir;
 
-	@SuppressWarnings("unchecked")
 	public void execute() throws MojoExecutionException {
 		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
 			String inputDirectory = buildDir == null ? project.getBuild()
-					.getOutputDirectory() : buildDir;
+					.getOutputDirectory() : computeDir(buildDir);
 			String testInputDirectory = testBuildDir == null ? project.getBuild()
-					.getTestOutputDirectory() : testBuildDir;
+					.getTestOutputDirectory() : computeDir(testBuildDir);
 			final List<String> runtimeClasspathElements = project
 					.getRuntimeClasspathElements();
 			for (final String runtimeResource : runtimeClasspathElements) {
@@ -101,6 +100,15 @@ public class JavassistMojo extends AbstractMojo {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
 	}
+
+    private String computeDir(String dir) {
+        File dirFile = new File( dir );
+        if( dirFile.isAbsolute() ) {
+            return dirFile.getAbsolutePath();
+        } else { 
+            return new File(project.getBasedir(), buildDir).getAbsolutePath();
+        }
+    }
 
 	/**
 	 * @param contextClassLoader
@@ -193,5 +201,21 @@ public class JavassistMojo extends AbstractMojo {
 			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
+	
+	public Boolean getIncludeTestClasses() {
+        return includeTestClasses;
+    }
+	
+	public ClassTransformerConfiguration[] getTransformerClasses() {
+        return transformerClasses;
+    }
+	
+	public String getBuildDir() {
+        return buildDir;
+    }
+	
+	public String getTestBuildDir() {
+        return testBuildDir;
+    }
 
 }
