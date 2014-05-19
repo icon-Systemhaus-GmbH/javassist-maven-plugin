@@ -113,7 +113,7 @@ public class JavassistTransformerExecutorTest {
     
     @SuppressWarnings("deprecation")
     @Test
-    public void testWithRealClassAndInnerClass() throws Exception {
+    public void testWithRealClassAndInnerClass_when_not_supporting_inner_classes() throws Exception {
         //given
         createOneTestClassWithInner(ROOT);
 
@@ -124,9 +124,9 @@ public class JavassistTransformerExecutorTest {
         
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
         EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
-        EasyMock.expectLastCall().times(2);
+        EasyMock.expectLastCall().times(1);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
-        EasyMock.expectLastCall().times(2);
+        EasyMock.expectLastCall().times(1);
         EasyMock.replay(mockTransformer);
 
         executor.setTransformerClasses(mockTransformer);
@@ -138,6 +138,39 @@ public class JavassistTransformerExecutorTest {
         //when
         executor.execute();
 
+        //then
+        EasyMock.verify( mockTransformer );
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testWithRealClassAndInnerClass_when_supporting_inner_classes() throws Exception {
+        //given
+        createOneTestClassWithInner(ROOT);
+        
+        JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+        
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
+        Method methodIsSupportingInnerClasses= ClassTransformer.class.getDeclaredMethod("isSupportingInnerClasses");
+        
+        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation, methodIsSupportingInnerClasses);
+        EasyMock.expect(mockTransformer.isSupportingInnerClasses()).andReturn(true);
+        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expectLastCall().times(2);
+        mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
+        EasyMock.expectLastCall().times(2);
+        EasyMock.replay(mockTransformer);
+        
+        executor.setTransformerClasses(mockTransformer);
+        File root = new File("tmp");
+        executor.setAdditionalClassPath(root.toURL());
+        executor.setInputDirectory(root.getAbsolutePath());
+        executor.setOutputDirectory(root.getAbsolutePath());
+        
+        //when
+        executor.execute();
+        
         //then
         EasyMock.verify( mockTransformer );
     }
