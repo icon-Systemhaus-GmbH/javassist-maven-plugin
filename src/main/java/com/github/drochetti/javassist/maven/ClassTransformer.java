@@ -42,184 +42,200 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ClassTransformer {
 
-	private static Logger logger = LoggerFactory.getLogger(ClassTransformer.class);
+    private static Logger logger = LoggerFactory.getLogger(ClassTransformer.class);
 
-	/**
-	 * <p>Concrete implementations must implement all transformations on this method.
-	 * You can use Javassist API to add/remove/replace methods, attributes and more.
-	 * Only classes approved by {@link #filter(CtClass)} are considered.</p>
-	 *
-	 * @param classToTransform The class to transform.
-	 * @see #filter(CtClass)
-	 * @throws Exception if any error occur during the transformation.
-	 */
-	protected abstract void applyTransformations(CtClass classToTransform) throws Exception;
+    /**
+     * <p>Concrete implementations must implement all transformations on this method.
+     * You can use Javassist API to add/remove/replace methods, attributes and more.
+     * Only classes approved by {@link #filter(CtClass)} are considered.</p>
+     *
+     * @param classToTransform The class to transform.
+     * @see #filter(CtClass)
+     * @throws Exception if any error occur during the transformation.
+     */
+    protected abstract void applyTransformations(CtClass classToTransform) throws Exception;
 
-	/**
-	 * <p>Test if the given class is suitable for applying transformations or not.</p>
-	 * <p>For example, if the class is a specific type:</p>
-	 * <code><pre>
-	 * CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
-	 * return candidateClass.subtypeOf(myInterface);
-	 * </pre></code>
-	 *
-	 * @param candidateClass
-	 * @return {@code true} if the Class should be transformed; {@code false} otherwise.
-	 * @throws Exception
-	 */
-	protected boolean filter(final CtClass candidateClass) throws Exception {
-		return true;
-	}
-	
-	/**
-	 * <p>Configure this instance by passing {@link Properties}.</p>
-	 * @param properties maybe <code>null</code> or empty
-	 * @throws Exception 
-	 */
-	public void configure(final Properties properties) throws Exception {
-		return;
-	}
+    /**
+     * Indicates whether or not the transformer can transform inner classes.
+     * By default, this is set to {@code false} but the method can be overriden. If it returns {@code true},
+     * then the {@link ClassTransformer} will be passed all inner classes.
+     * <br/>
+     * Officially, javassist doesn't support nested classes 
+     * @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
+     * But it looks like Indeed static inner classes are supported.
+     */
+    public boolean isSupportingInnerClasses() {
+        return false;
+    }
 
-	/**
-	 * <p>
-	 * Search for class files on the passed directory, load each one as {@link CtClass}, filter
-	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
-	 * ({@link #applyTransformations(CtClass)}).
-	 * </p>
-	 * <p>
-	 * <strong>Limitation:</strong> do not search inside .jar files yet.
-	 * </p>
-	 * @param dir root directory -input and output directory are the same.
-	 * @see #iterateClassnames(String)
-	 * @see #transform(Iterator, String)
-	 * @see #applyTransformations(CtClass)
-	 * 
-	 */
-	public final void transform(final String dir) {
-		if( null == dir || dir.trim().isEmpty()) {
-			return;
-		}
-		transform(dir,dir,iterateClassnames(dir));
-	}
+    /**
+     * <p>Test if the given class is suitable for applying transformations or not.</p>
+     * <p>For example, if the class is a specific type:</p>
+     * <code><pre>
+     * CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
+     * return candidateClass.subtypeOf(myInterface);
+     * </pre></code>
+     *
+     * @param candidateClass
+     * @return {@code true} if the Class should be transformed; {@code false} otherwise.
+     * @throws Exception
+     */
+    protected boolean filter(final CtClass candidateClass) throws Exception {
+        return true;
+    }
 
-	/**
-	 * <p>
-	 * Search for class files on the passed input directory, load each one as {@link CtClass}, filter
-	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
-	 * ({@link #applyTransformations(CtClass)}).
-	 * </p>
-	 * <p>
-	 * <strong>Limitation:</strong> do not search inside .jar files yet.
-	 * </p>
-	 * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
-	 * @param outputDir if <code>null</code> or empty the inputDir will be used
-	 * @see #iterateClassnames(String)
-	 * @see #transform(Iterator, String)
-	 * @see #applyTransformations(CtClass)
-	 */
-	public void transform(final String inputDir, final String outputDir) {
-		if( null == inputDir || inputDir.trim().isEmpty()) {
-			return;
-		}
-		final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir:inputDir;
-		transform(inputDir, outDirectory,iterateClassnames(inputDir));
-	}
+    /**
+     * <p>Configure this instance by passing {@link Properties}.</p>
+     * @param properties maybe <code>null</code> or empty
+     * @throws Exception 
+     */
+    public void configure(final Properties properties) throws Exception {
+        return;
+    }
 
-	/**
-	 * <p>
-	 * Use the passed className iterator, load each one as {@link CtClass}, filter
-	 * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
-	 * ({@link #applyTransformations(CtClass)}).
-	 * </p>
-	 * <p>
-	 * <strong>Limitation:</strong> do not search inside .jar files yet.
-	 * </p>
-	 * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
-	 * @param outputDir must be not <code>null</code>
-	 * @see #applyTransformations(CtClass)
-	 */
-	public final void transform(final String inputDir,final String outputDir, final Iterator<String> classNames) {
-		if( null == classNames || !classNames.hasNext()) {
-			return;
-		}
-		try {
-			// create new classpool for transform; don't blow up the default
-			final ClassPool classPool = new ClassPool(ClassPool.getDefault());
-			classPool.childFirstLookup = true;
-			classPool.appendClassPath(inputDir);
-			classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
-			classPool.appendSystemPath();
-			debugClassLoader(classPool);
-			int i = 0;
-			while (classNames.hasNext()) {
-				final String className = classNames.next();
-				if( null == className) {
-					continue;
-				}
-				try {
-					logger.debug("Got class name {}", className);
-					classPool.importPackage(className);
-					final CtClass candidateClass = classPool.get(className);
-					initializeClass(candidateClass);
-					if (filter(candidateClass)) {
-						applyTransformations(candidateClass);
-						candidateClass.writeFile(outputDir);
-						logger.debug("Class {} instrumented by {}", className, getClass().getName());
-						++i;
-					}
-				} catch (final NotFoundException e) {
-					logger.warn("Class {} could not not be resolved due to dependencies not found on " +
-							"current classpath (usually your class depends on \"provided\" scoped dependencies).",
-							className);
-					continue;
-				} catch ( final Exception ex) { // EOFException ...
-					logger.error("Class {} could not not be instrumented due to initialize FAILED.",className, ex);
-					continue;
-				}
-			}
-			logger.info("#{} classes instrumented by {}",i,getClass().getName());
-		} catch (final Exception e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-	}
+    /**
+     * <p>
+     * Search for class files on the passed directory, load each one as {@link CtClass}, filter
+     * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
+     * ({@link #applyTransformations(CtClass)}).
+     * </p>
+     * <p>
+     * <strong>Limitation:</strong> do not search inside .jar files yet.
+     * </p>
+     * @param dir root directory -input and output directory are the same.
+     * @see #iterateClassnames(String)
+     * @see #transform(Iterator, String)
+     * @see #applyTransformations(CtClass)
+     * 
+     */
+    public final void transform(final String dir) {
+        if( null == dir || dir.trim().isEmpty()) {
+            return;
+        }
+        transform(dir,dir,iterateClassnames(dir));
+    }
 
-	// TODO: maybe use RegexFileFilter instead of WildcardFileFilter
-	protected Iterator<String> iterateClassnames(final String dir) {
-		final String[] extensions = { ".class" };
-		final String innerClassWildcard = "*$*";
-		final File directory = new File(dir);
-		// only files with extension '.class' and NOT with '$' - for ignoring nested classes
-		// javassist doesn't support nested classes
-		// @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
-		final IOFileFilter fileFilter = FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
-		final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
-		return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
-	}
+    /**
+     * <p>
+     * Search for class files on the passed input directory, load each one as {@link CtClass}, filter
+     * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
+     * ({@link #applyTransformations(CtClass)}).
+     * </p>
+     * <p>
+     * <strong>Limitation:</strong> do not search inside .jar files yet.
+     * </p>
+     * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
+     * @param outputDir if <code>null</code> or empty the inputDir will be used
+     * @see #iterateClassnames(String)
+     * @see #transform(Iterator, String)
+     * @see #applyTransformations(CtClass)
+     */
+    public void transform(final String inputDir, final String outputDir) {
+        if( null == inputDir || inputDir.trim().isEmpty()) {
+            return;
+        }
+        final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir:inputDir;
+        transform(inputDir, outDirectory,iterateClassnames(inputDir));
+    }
 
-	private void initializeClass(final CtClass candidateClass) throws NotFoundException {
-		// TODO hack to initialize class to avoid further NotFoundException (what's the right way of doing this?)
-		candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
-	}
+    /**
+     * <p>
+     * Use the passed className iterator, load each one as {@link CtClass}, filter
+     * the valid candidates (using {@link #filter(CtClass)}) and apply transformation to each one
+     * ({@link #applyTransformations(CtClass)}).
+     * </p>
+     * <p>
+     * <strong>Limitation:</strong> do not search inside .jar files yet.
+     * </p>
+     * @param inputDir root directory - required - if <code>null</code> or empty nothing will be transformed 
+     * @param outputDir must be not <code>null</code>
+     * @see #applyTransformations(CtClass)
+     */
+    public final void transform(final String inputDir,final String outputDir, final Iterator<String> classNames) {
+        if( null == classNames || !classNames.hasNext()) {
+            return;
+        }
+        try {
+            // create new classpool for transform; don't blow up the default
+            final ClassPool classPool = new ClassPool(ClassPool.getDefault());
+            classPool.childFirstLookup = true;
+            classPool.appendClassPath(inputDir);
+            classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
+            classPool.appendSystemPath();
+            debugClassLoader(classPool);
+            int i = 0;
+            while (classNames.hasNext()) {
+                final String className = classNames.next();
+                if( null == className) {
+                    continue;
+                }
+                try {
+                    logger.debug("Got class name {}", className);
+                    classPool.importPackage(className);
+                    final CtClass candidateClass = classPool.get(className);
+                    initializeClass(candidateClass);
+                    if (filter(candidateClass)) {
+                        applyTransformations(candidateClass);
+                        candidateClass.writeFile(outputDir);
+                        logger.debug("Class {} instrumented by {}", className, getClass().getName());
+                        ++i;
+                    }
+                } catch (final NotFoundException e) {
+                    logger.warn("Class {} could not not be resolved due to dependencies not found on " +
+                            "current classpath (usually your class depends on \"provided\" scoped dependencies).",
+                            className);
+                    continue;
+                } catch ( final Exception ex) { // EOFException ...
+                    logger.error("Class {} could not not be instrumented due to initialize FAILED.",className, ex);
+                    continue;
+                }
+            }
+            logger.info("#{} classes instrumented by {}",i,getClass().getName());
+        } catch (final Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
-	private void debugClassLoader(final ClassPool classPool) {
-		if (!logger.isDebugEnabled()) {
-			return;
-		}
-		logger.debug(" - classPool: " + classPool.toString());
-		ClassLoader classLoader = classPool.getClassLoader();
-		while (classLoader != null) {
-			logger.debug(" -- " + classLoader.getClass().getName() + ": "
-					+ classLoader.toString());
-			if (classLoader instanceof URLClassLoader) {
-				logger.debug(" --- urls: "
-						+ Arrays.deepToString(((URLClassLoader) classLoader)
-								.getURLs()));
-			}
-			classLoader = classLoader.getParent();
-		}
-	}
+    // TODO: maybe use RegexFileFilter instead of WildcardFileFilter
+    protected Iterator<String> iterateClassnames(final String dir) {
+        final String[] extensions = { ".class" };
+        final String innerClassWildcard = "*$*";
+        final File directory = new File(dir);
+        // only files with extension '.class' and NOT with '$' - for ignoring nested classes
+        IOFileFilter fileFilter = null;
+        if( isSupportingInnerClasses() ) {
+            fileFilter = new SuffixFileFilter(extensions);
+        } else {
+            fileFilter =  FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
+        }
+        final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
+        return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
+    }
 
-	protected static Logger getLogger() {
+    private void initializeClass(final CtClass candidateClass) throws NotFoundException {
+        // TODO hack to initialize class to avoid further NotFoundException (what's the right way of doing this?)
+        candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
+    }
+
+    private void debugClassLoader(final ClassPool classPool) {
+        if (!logger.isDebugEnabled()) {
+            return;
+        }
+        logger.debug(" - classPool: " + classPool.toString());
+        ClassLoader classLoader = classPool.getClassLoader();
+        while (classLoader != null) {
+            logger.debug(" -- " + classLoader.getClass().getName() + ": "
+                    + classLoader.toString());
+            if (classLoader instanceof URLClassLoader) {
+                logger.debug(" --- urls: "
+                        + Arrays.deepToString(((URLClassLoader) classLoader)
+                                .getURLs()));
+            }
+            classLoader = classLoader.getParent();
+        }
+    }
+
+    protected static Logger getLogger() {
         return logger;
     }
 }
