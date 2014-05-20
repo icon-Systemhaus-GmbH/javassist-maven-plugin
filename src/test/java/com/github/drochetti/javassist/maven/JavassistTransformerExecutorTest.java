@@ -174,5 +174,47 @@ public class JavassistTransformerExecutorTest {
         //then
         EasyMock.verify( mockTransformer );
     }
+    
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testStamping_with_2_different_transformers() throws Exception {
+        //given
+        createOneTestClass(ROOT);
+        
+        JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+        
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
+        
+        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expectLastCall().times(1);
+        mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
+        EasyMock.expectLastCall().times(1);
+        
+        ClassTransformer mockTransformer2 = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        EasyMock.expect(mockTransformer2.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expectLastCall().times(1);
+        mockTransformer2.applyTransformations((CtClass)EasyMock.anyObject());
+        EasyMock.expectLastCall().times(1);
+        
+        EasyMock.replay(mockTransformer);
+        EasyMock.replay(mockTransformer2);
+        
+        executor.setTransformerClasses(mockTransformer);
+        File root = new File("tmp");
+        executor.setAdditionalClassPath(root.toURL());
+        executor.setInputDirectory(root.getAbsolutePath());
+        executor.setOutputDirectory(root.getAbsolutePath());
+        
+        executor.execute();
+        
+        //when
+        executor.setTransformerClasses(mockTransformer, mockTransformer2);
+        executor.execute();
+        
+        //then
+        EasyMock.verify( mockTransformer );
+    }
 
 }
