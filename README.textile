@@ -1,5 +1,7 @@
 h1. Javassist Maven Plugin
 
+p. <a href="https://travis-ci.org/stephanenicolas/javassist-maven-plugin"><img src="https://travis-ci.org/stephanenicolas/javassist-maven-plugin.svg" /></a>
+
 p. A simple Maven plugin that can apply Javassist tranformation on classes after compilation.
 
 h2. How to use it
