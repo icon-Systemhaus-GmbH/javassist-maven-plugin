@@ -192,7 +192,7 @@ public abstract class ClassTransformer {
         final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
         return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
     }
-    
+
     protected static Logger getLogger() {
         return logger;
     }
