@@ -24,7 +24,6 @@
 				<version>${project.version}</version>
 				<configuration>
 					<project implementation="com.github.drochetti.javassist.maven.stubs.Project1Stub" />
-					<skip>false</skip>
 					<includeTestClasses>false</includeTestClasses>
 					<transformerClasses>
 						<transformerClass>
