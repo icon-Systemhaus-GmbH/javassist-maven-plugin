@@ -6,10 +6,47 @@
 	<artifactId>javassist-maven-plugin</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
-
 	<name>Javassist Maven Plugin</name>
+	<description>A maven plugin based on Javassist to manipulate bytecode of project classes at post-compile time.</description>
+	<url>http://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin</url>
+	<inceptionYear>2013</inceptionYear>
 
-	<url>http://github.com/drochetti/javassist-maven-plugin</url>
+	<scm>
+		<connection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</connection>
+		<url>git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</url>
+		<developerConnection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>Github Issue Tracker</system>
+		<url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin/issues</url>
+	</issueManagement>
+
+	<developers>
+		<developer>
+			<id>barthel</id>
+			<name></name>
+			<email></email>
+		</developer>
+		<developer>
+			<id>drochetti</id>
+			<name></name>
+			<email></email>
+		</developer>
+	</developers>
+
+	<ciManagement>
+		<system>travis</system>
+		<url>https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin/</url>
+	</ciManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
