@@ -27,12 +27,9 @@ import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,19 +51,6 @@ public abstract class ClassTransformer {
      * @throws Exception if any error occur during the transformation.
      */
     protected abstract void applyTransformations(CtClass classToTransform) throws Exception;
-
-    /**
-     * Indicates whether or not the transformer can transform inner classes.
-     * By default, this is set to {@code false} but the method can be overriden. If it returns {@code true},
-     * then the {@link ClassTransformer} will be passed all inner classes.
-     * <br/>
-     * Officially, javassist doesn't support nested classes 
-     * @see http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/tutorial/tutorial2.html #4.7 Limitations
-     * But it looks like Indeed static inner classes are supported.
-     */
-    public boolean isSupportingInnerClasses() {
-        return false;
-    }
 
     /**
      * <p>Test if the given class is suitable for applying transformations or not.</p>
@@ -196,18 +180,10 @@ public abstract class ClassTransformer {
         }
     }
 
-    // TODO: maybe use RegexFileFilter instead of WildcardFileFilter
     protected Iterator<String> iterateClassnames(final String dir) {
         final String[] extensions = { ".class" };
-        final String innerClassWildcard = "*$*";
         final File directory = new File(dir);
-        // only files with extension '.class' and NOT with '$' - for ignoring nested classes
-        IOFileFilter fileFilter = null;
-        if( isSupportingInnerClasses() ) {
-            fileFilter = new SuffixFileFilter(extensions);
-        } else {
-            fileFilter =  FileFilterUtils.and(new SuffixFileFilter(extensions), new NotFileFilter(new WildcardFileFilter(innerClassWildcard)));
-        }
+        IOFileFilter fileFilter = new SuffixFileFilter(extensions);
         final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
         return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
     }
