@@ -6,6 +6,7 @@
 	<artifactId>javassist-maven-plugin</artifactId>
 	<version>1.0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
+
 	<name>Javassist Maven Plugin</name>
 	<description>A maven plugin based on Javassist to manipulate bytecode of project classes at post-compile time.</description>
 	<url>http://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin</url>
@@ -25,28 +26,38 @@
 		</license>
 	</licenses>
 
-	<issueManagement>
-		<system>Github Issue Tracker</system>
-		<url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin/issues</url>
-	</issueManagement>
-
 	<developers>
 		<developer>
-			<id>barthel</id>
-			<name></name>
-			<email></email>
+			<id>drochetti</id>
+			<roles>
+				<role>project founder</role>
+			</roles>
 		</developer>
 		<developer>
-			<id>drochetti</id>
-			<name></name>
-			<email></email>
+			<id>barthel</id>
+			<url>https://github.com/barthel</url>
+			<organization>icon Systemhaus GmbH</organization>
+			<organizationUrl>http://www.icongmbh.de/</organizationUrl>
+			<roles>
+				<role>project lead</role>
+			</roles>
 		</developer>
 	</developers>
+
+	<contributors>
+		<contributor>
+		</contributor>
+	</contributors>
 
 	<ciManagement>
 		<system>travis</system>
 		<url>https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin/</url>
 	</ciManagement>
+
+	<issueManagement>
+		<system>Github Issue Tracker</system>
+		<url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin/issues</url>
+	</issueManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
