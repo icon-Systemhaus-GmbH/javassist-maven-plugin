@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github.drochetti</groupId>
-	<artifactId>javassist-maven-plugin-test-project1</artifactId>
+	<artifactId>javassist-maven-plugin-test-project2</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
@@ -23,9 +23,12 @@
 				<artifactId>javassist-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<configuration>
-					<project implementation="com.github.drochetti.javassist.maven.stubs.Project1Stub" />
-					<skip>false</skip>
+					<project implementation="com.github.drochetti.javassist.maven.stubs.Project3Stub" />
+					<skip>true</skip>
 					<includeTestClasses>false</includeTestClasses>
+					<!-- these folders don't exist and should break the test if it runs -->
+					<buildDir>bin/classes</buildDir>
+					<testBuildDir>bin/test-classes</testBuildDir>
 					<transformerClasses>
 						<transformerClass>
 							<className>com.github.drochetti.javassist.maven.SampleTransformer</className>

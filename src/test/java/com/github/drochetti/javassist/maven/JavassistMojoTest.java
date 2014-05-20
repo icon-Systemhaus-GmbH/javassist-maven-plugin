@@ -34,6 +34,9 @@ public class JavassistMojoTest {
         JavassistMojo mojo = (JavassistMojo) rule.lookupMojo( "javassist", pom );
         assertNotNull( mojo );
         
+        assertNotNull( mojo.isSkip() );
+        assertFalse( mojo.isSkip() );
+
         assertNotNull( mojo.getIncludeTestClasses() );
         assertFalse( mojo.getIncludeTestClasses() );
         
@@ -53,6 +56,9 @@ public class JavassistMojoTest {
         JavassistMojo mojo = (JavassistMojo) rule.lookupMojo( "javassist", pom );
         assertNotNull( mojo );
         
+        assertNotNull( mojo.isSkip() );
+        assertFalse( mojo.isSkip() );
+
         assertNotNull( mojo.getIncludeTestClasses() );
         assertFalse( mojo.getIncludeTestClasses() );
         
@@ -67,6 +73,20 @@ public class JavassistMojoTest {
         assertNotNull( mojo.getTestBuildDir() );
         assertEquals( "bin/test-classes",mojo.getTestBuildDir() );
         
+        mojo.execute();
+    }
+    
+    @Test
+    public void testSkip() throws Exception {
+        File pom = new File( "src/test/resources/project3/pom.xml" );
+        assertNotNull( pom );
+        assertTrue( pom.exists() );
+
+        JavassistMojo mojo = (JavassistMojo) rule.lookupMojo( "javassist", pom );
+        assertNotNull( mojo );
+        
+        assertNotNull( mojo.isSkip() );
+        assertTrue( mojo.isSkip() );
         mojo.execute();
     }
 
