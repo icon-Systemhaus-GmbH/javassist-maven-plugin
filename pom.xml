@@ -4,7 +4,7 @@
 
 	<groupId>com.github.drochetti</groupId>
 	<artifactId>javassist-maven-plugin</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 	<name>Javassist Maven Plugin</name>
 	<description>A maven plugin based on Javassist to manipulate bytecode of project classes at post-compile time.</description>
