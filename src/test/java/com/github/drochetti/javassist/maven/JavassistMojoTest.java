@@ -75,20 +75,6 @@ public class JavassistMojoTest {
         
         mojo.execute();
     }
-    
-    @Test
-    public void testSkip() throws Exception {
-        File pom = new File( "src/test/resources/project3/pom.xml" );
-        assertNotNull( pom );
-        assertTrue( pom.exists() );
-
-        JavassistMojo mojo = (JavassistMojo) rule.lookupMojo( "javassist", pom );
-        assertNotNull( mojo );
-        
-        assertNotNull( mojo.isSkip() );
-        assertTrue( mojo.isSkip() );
-        mojo.execute();
-    }
 
     @Test
     public void testSkip() throws Exception {
