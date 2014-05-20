@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 
@@ -39,6 +41,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ClassTransformer {
 
+    private static final String STAMP_FIELD_NAME = "__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__";
+    
     private static Logger logger = LoggerFactory.getLogger(ClassTransformer.class);
 
     /**
@@ -158,8 +162,9 @@ public abstract class ClassTransformer {
                     classPool.importPackage(className);
                     final CtClass candidateClass = classPool.get(className);
                     initializeClass(candidateClass);
-                    if (filter(candidateClass)) {
+                    if ( !hasStamp(candidateClass) && filter(candidateClass) ) {
                         applyTransformations(candidateClass);
+                        applyStamp(candidateClass);
                         candidateClass.writeFile(outputDir);
                         logger.debug("Class {} instrumented by {}", className, getClass().getName());
                         ++i;
@@ -187,6 +192,42 @@ public abstract class ClassTransformer {
         final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
         return ClassnameExtractor.iterateClassnames(directory, FileUtils.iterateFiles(directory, fileFilter, dirFilter));
     }
+    
+    protected static Logger getLogger() {
+        return logger;
+    }
+    
+    /**
+     * Apply a "stamp" to a class to indicate it has been modified.
+     * By default, this method uses a boolean field named 
+     * {@value #STAMP_FIELD_NAME} as the stamp. 
+     * Any class overriding this method should also override {@link #hasStamp(CtClass)}. 
+     * @param candidateClass the class to mark/stamp.
+     * @throws CannotCompileException 
+     * @see {@link #hasStamp(CtClass)}
+     */
+    protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
+        CtField stampField = new CtField(CtClass.booleanType, STAMP_FIELD_NAME,candidateClass);
+        candidateClass.addField(stampField);
+    }
+    
+    /**
+     * Indicates whether a class holds a stamp or not. 
+     * By default, this method uses a boolean field named 
+     * {@value #STAMP_FIELD_NAME} as the stamp. 
+     * Any class overriding this method should also override {@link #applyStamp(CtClass)}.
+     * @param candidateClass the class to check.
+     * @return true if the class owns the stamp, otherwise false.
+     * @see #applyStamp(CtClass)
+     */
+    protected boolean hasStamp(CtClass candidateClass) {
+        try {
+            candidateClass.getDeclaredField(STAMP_FIELD_NAME);
+            return true;
+        } catch (NotFoundException e) {
+            return false;
+        }
+    }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
         // TODO hack to initialize class to avoid further NotFoundException (what's the right way of doing this?)
@@ -209,9 +250,5 @@ public abstract class ClassTransformer {
             }
             classLoader = classLoader.getParent();
         }
-    }
-
-    protected static Logger getLogger() {
-        return logger;
     }
 }
