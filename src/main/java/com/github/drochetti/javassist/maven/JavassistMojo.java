@@ -37,7 +37,22 @@ import org.apache.maven.project.MavenProject;
  * Maven plugin that will apply <a
  * href="http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/">Javassist</a>
  * class transformations on compiled classes (bytecode instrumentation).
+ * <br/>
+ * Example plugin configuration :
  * 
+ * <pre>
+ *   &lt;configuration&gt;
+ *       &lt;skip&gt;true&lt;/skip&gt;
+ *       &lt;includeTestClasses&gt;false&lt;/includeTestClasses&gt;
+ *       &lt;buildDir&gt;bin/classes&lt;/buildDir&gt;
+ *       &lt;testBuildDir&gt;bin/test-classes&lt;/testBuildDir&gt;
+ *       &lt;transformerClasses&gt;
+ *           &lt;transformerClass&gt;
+ *               &lt;className&gt;com.github.drochetti.javassist.maven.SampleTransformer&lt;/className&gt;
+ *           &lt;/transformerClass&gt;
+ *       &lt;/transformerClasses&gt;
+ *   &lt;/configuration&gt;
+ * </pre> 
  * @author Daniel Rochetti
  * @author Uwe Barthel
  */
@@ -49,10 +64,12 @@ public class JavassistMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project}", property = "javassist.project", required = true, readonly = true)
 	private MavenProject project;
 
+	/**Skips all processing performed by this goal.*/
 	@Parameter(defaultValue = "false", property = "javassist.skip", required = false)
 	private boolean skip;
 
 	@Parameter(defaultValue = "true", property = "javassist.includeTestClasses", required = true)
+	/**Whether or not to include test classes to be processed byt declared transformers.*/
 	private Boolean includeTestClasses;
 
 	@Parameter(property = "javassist.transformerClasses", required = true)
