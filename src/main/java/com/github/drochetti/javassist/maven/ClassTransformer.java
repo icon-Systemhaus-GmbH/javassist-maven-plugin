@@ -207,10 +207,10 @@ public abstract class ClassTransformer {
      * @see {@link #hasStamp(CtClass)}
      */
     protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
-        CtField stampField = new CtField(CtClass.booleanType, STAMP_FIELD_NAME,candidateClass);
+        CtField stampField = new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
         candidateClass.addField(stampField);
     }
-    
+
     /**
      * Indicates whether a class holds a stamp or not. 
      * By default, this method uses a boolean field named 
@@ -222,11 +222,15 @@ public abstract class ClassTransformer {
      */
     protected boolean hasStamp(CtClass candidateClass) {
         try {
-            candidateClass.getDeclaredField(STAMP_FIELD_NAME);
+            candidateClass.getDeclaredField(createStampFieldName());
             return true;
         } catch (NotFoundException e) {
             return false;
         }
+    }
+    
+    private String createStampFieldName() {
+        return STAMP_FIELD_NAME+getClass().getName();
     }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
