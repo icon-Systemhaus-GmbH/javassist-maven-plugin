@@ -38,7 +38,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	public static final char JAVASSIST_STATEMENT_START_TOKEN = '{';
 	public static final char JAVASSIST_STATEMENT_END_TOKEN = '}';
 
-	private static final String ALREADY_INTROSPECTED_FIELD_NAME = "__introspected__"
+	public static final String ALREADY_INTROSPECTED_FIELD_NAME = "__introspected__"
 			+ MethodCallClassTransformer.class.getSimpleName();
 	private Properties properties;
 
