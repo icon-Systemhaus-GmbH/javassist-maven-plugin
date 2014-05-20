@@ -69,7 +69,4 @@ public class JavassistMojoTest {
         
         mojo.execute();
     }
-
-
-
 }
