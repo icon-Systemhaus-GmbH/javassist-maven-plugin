@@ -230,7 +230,7 @@ public abstract class ClassTransformer {
     }
     
     private String createStampFieldName() {
-        return STAMP_FIELD_NAME+getClass().getName().replaceAll(".", "_").replaceAll("$", "_");
+        return STAMP_FIELD_NAME+getClass().getName().replaceAll("\\W", "_");
     }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
