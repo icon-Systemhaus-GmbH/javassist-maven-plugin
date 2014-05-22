@@ -295,6 +295,24 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-invoker-plugin</artifactId>
+				<version>1.8</version>
+				<configuration>
+					<projectsDirectory>src/it/resources</projectsDirectory>
+					<localRepositoryPath>target/local-repo</localRepositoryPath>
+					<settingsFile>src/it/resources/settings.xml</settingsFile>
+				</configuration>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>install</goal>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>
