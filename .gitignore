@@ -2,3 +2,5 @@
 /.classpath
 /.project
 /target
+src/it/resources/project1/*.log
+src/it/resources/project1/target/

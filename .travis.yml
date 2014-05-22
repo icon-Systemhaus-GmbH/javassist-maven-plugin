@@ -1,4 +1,9 @@
 language: java
 jdk: oraclejdk7
-    
+
+install: mvn -DskipTests=true -Dinvoker.skip -B -V install
 script: mvn clean install 
+
+after_failure: cat /home/travis/build/stephanenicolas/javassist-maven-plugin/src/it/resources/project1/build.log
+
+
