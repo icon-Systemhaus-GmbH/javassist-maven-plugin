@@ -61,6 +61,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.compiler.version>1.6</java.compiler.version>
 
 		<maven-plugin-api.version>3.2.1</maven-plugin-api.version>
 		<maven-plugin-annotations.version>3.3</maven-plugin-annotations.version>
@@ -273,6 +274,15 @@
 		</pluginManagement>
 
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<encoding>${encoding}</encoding>
+					<source>${java.compiler.version}</source>
+					<target>${java.compiler.version}</target>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-plugin-plugin</artifactId>
