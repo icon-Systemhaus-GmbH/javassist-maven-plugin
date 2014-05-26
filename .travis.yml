@@ -1,5 +1,5 @@
 language: java
-jdk: oraclejdk6
+jdk: openjdk6
 
 install: mvn -DskipTests=true -Dinvoker.skip -B -V install
 script: mvn clean install 
