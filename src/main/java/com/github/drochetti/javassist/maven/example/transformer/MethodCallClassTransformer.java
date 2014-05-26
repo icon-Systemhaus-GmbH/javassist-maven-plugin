@@ -18,10 +18,6 @@ package com.github.drochetti.javassist.maven.example.transformer;
 import java.util.Properties;
 import javassist.CannotCompileException;
 import javassist.CtClass;
-import javassist.CtField;
-import javassist.NotFoundException;
-import javassist.CtField.Initializer;
-import javassist.bytecode.AccessFlag;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
@@ -30,7 +26,6 @@ import com.github.drochetti.javassist.maven.ClassTransformer;
 /**
  * Example of {@link ClassTransformer} implementation.
  * 
- * @author Uwe Barthel
  */
 public class MethodCallClassTransformer extends ClassTransformer {
 
@@ -38,8 +33,6 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	public static final char JAVASSIST_STATEMENT_START_TOKEN = '{';
 	public static final char JAVASSIST_STATEMENT_END_TOKEN = '}';
 
-	public static final String ALREADY_INTROSPECTED_FIELD_NAME = "__introspected__"
-			+ MethodCallClassTransformer.class.getSimpleName();
 	private Properties properties;
 
 	/**
@@ -71,8 +64,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
 
 	@Override
 	protected boolean filter(final CtClass candidateClass) throws Exception {
-		return candidateClass != null && !isIntrospected(candidateClass)
-				&& super.filter(candidateClass);
+		return candidateClass != null && super.filter(candidateClass);
 	}
 
 	@Override
@@ -97,22 +89,6 @@ public class MethodCallClassTransformer extends ClassTransformer {
 				}
 			}
 		});
-		// insert internal introspection state field
-		final CtField introspectedField = new CtField(CtClass.booleanType,
-				ALREADY_INTROSPECTED_FIELD_NAME, classToTransform);
-		introspectedField.setModifiers(AccessFlag.PUBLIC | AccessFlag.STATIC
-				| AccessFlag.FINAL);
-		classToTransform
-				.addField(introspectedField, Initializer.constant(true));
-	}
-
-	private boolean isIntrospected(final CtClass candidateClass) {
-		try {
-			candidateClass.getField(ALREADY_INTROSPECTED_FIELD_NAME);
-			return true;
-		} catch (final NotFoundException e) {
-			return false;
-		}
 	}
 
 	// TODO: find better implementation
