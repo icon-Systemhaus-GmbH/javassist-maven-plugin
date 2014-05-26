@@ -207,8 +207,24 @@ public abstract class ClassTransformer {
      * @see {@link #hasStamp(CtClass)}
      */
     protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
-        CtField stampField = new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
-        candidateClass.addField(stampField);
+        candidateClass.addField(createStampField(candidateClass));
+    }
+
+    /**
+     * Remove a "stamp" from a class if the "stamp" field is available.
+     * By default, this method removes a boolean field named {@value #STAMP_FIELD_NAME}. 
+     * Any class overriding this method should also override {@link #hasStamp(CtClass)}. 
+     * @param candidateClass the class to remove the mark/stamp from.
+     * @throws CannotCompileException 
+     * @see {@link #hasStamp(CtClass)}
+     * @see {@link #applyStamp(CtClass)}
+     */
+    protected void removeStamp(CtClass candidateClass) throws CannotCompileException {
+        try {
+            candidateClass.removeField(createStampField(candidateClass));
+        } catch (final NotFoundException e) {
+            // ignore; 
+        }
     }
 
     /**
@@ -221,16 +237,24 @@ public abstract class ClassTransformer {
      * @see #applyStamp(CtClass)
      */
     protected boolean hasStamp(CtClass candidateClass) {
+    	boolean hasStamp = false;
         try {
-            candidateClass.getDeclaredField(createStampFieldName());
-            return true;
+            hasStamp = null != candidateClass.getDeclaredField(createStampFieldName());
         } catch (NotFoundException e) {
-            return false;
+            hasStamp = false;
         }
+        if( logger.isDebugEnabled() ) {
+            logger.debug("Stamp {}{} found in class {}", createStampFieldName(),(hasStamp?"":" NOT"),candidateClass.getName());
+        }
+        return hasStamp;
     }
     
     private String createStampFieldName() {
         return STAMP_FIELD_NAME+getClass().getName().replaceAll("\\W", "_");
+    }
+
+    private CtField createStampField(CtClass candidateClass) throws CannotCompileException {
+        return new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
     }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
