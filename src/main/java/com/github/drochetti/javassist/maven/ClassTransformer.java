@@ -27,6 +27,7 @@ import javassist.CtClass;
 import javassist.CtField;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
+import javassist.bytecode.ClassFile;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -258,23 +259,32 @@ public abstract class ClassTransformer {
     }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
+        debugClassFile(candidateClass.getClassFile2());
         // TODO hack to initialize class to avoid further NotFoundException (what's the right way of doing this?)
         candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
+    }
+
+    private void debugClassFile(final ClassFile classFile) {
+        if (!logger.isDebugEnabled()) {
+            return;
+        }
+        logger.debug(" - class: {}",classFile.getName());
+        logger.debug(" -- Java version: {}.{}", classFile.getMajorVersion(), classFile.getMinorVersion());
+        logger.debug(" -- interface: {} abstract: {} final: {}", classFile.isInterface(), classFile.isAbstract(), classFile.isFinal());
+        logger.debug(" -- extends class: {}",classFile.getSuperclass());
+        logger.debug(" -- implements interfaces: {}", Arrays.deepToString(classFile.getInterfaces()));
     }
 
     private void debugClassLoader(final ClassPool classPool) {
         if (!logger.isDebugEnabled()) {
             return;
         }
-        logger.debug(" - classPool: " + classPool.toString());
+        logger.debug(" - classPool: {}", classPool.toString());
         ClassLoader classLoader = classPool.getClassLoader();
         while (classLoader != null) {
-            logger.debug(" -- " + classLoader.getClass().getName() + ": "
-                    + classLoader.toString());
+            logger.debug(" -- {}: {}", classLoader.getClass().getName(), classLoader.toString());
             if (classLoader instanceof URLClassLoader) {
-                logger.debug(" --- urls: "
-                        + Arrays.deepToString(((URLClassLoader) classLoader)
-                                .getURLs()));
+                logger.debug(" --- urls: {}", Arrays.deepToString(((URLClassLoader) classLoader).getURLs()));
             }
             classLoader = classLoader.getParent();
         }
