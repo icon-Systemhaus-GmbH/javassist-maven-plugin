@@ -32,6 +32,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Maven plugin that will apply <a
@@ -59,7 +61,9 @@ import org.apache.maven.project.MavenProject;
 @Mojo(name = "javassist", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class JavassistMojo extends AbstractMojo {
 
-	private static final Class<ClassTransformer> TRANSFORMER_TYPE = ClassTransformer.class;
+    private static final Logger logger = LoggerFactory.getLogger(JavassistMojo.class);
+
+    private static final Class<ClassTransformer> TRANSFORMER_TYPE = ClassTransformer.class;
 
 	@Parameter(defaultValue = "${project}", property = "javassist.project", required = true, readonly = true)
 	private MavenProject project;
@@ -86,10 +90,11 @@ public class JavassistMojo extends AbstractMojo {
 	private String testBuildDir;
 
 	public void execute() throws MojoExecutionException {
-	    if( skip ) {
-	        return;
-	    }
-	    
+		if( skip ) {
+			logger.info("Skipping executing.");
+			return;
+		}
+
 		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
