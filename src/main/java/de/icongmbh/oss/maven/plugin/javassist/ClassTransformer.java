@@ -25,8 +25,10 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
+import javassist.CtField.Initializer;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
+import javassist.bytecode.AccessFlag;
 import javassist.bytecode.ClassFile;
 
 import org.apache.commons.io.FileUtils;
@@ -210,7 +212,7 @@ public abstract class ClassTransformer {
      * @see {@link #hasStamp(CtClass)}
      */
     protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
-        candidateClass.addField(createStampField(candidateClass));
+        candidateClass.addField(createStampField(candidateClass),Initializer.constant(true));
     }
 
     /**
@@ -257,7 +259,15 @@ public abstract class ClassTransformer {
     }
 
     private CtField createStampField(CtClass candidateClass) throws CannotCompileException {
-        return new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
+        int stampModifiers = AccessFlag.STATIC | AccessFlag.FINAL;
+        if (!candidateClass.isInterface()) {
+          stampModifiers |= AccessFlag.PRIVATE;
+        } else {
+          stampModifiers |= AccessFlag.PUBLIC;
+        }
+        final CtField stampField = new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
+        stampField.setModifiers(stampModifiers);
+        return stampField;
     }
 
     private void initializeClass(final CtClass candidateClass) throws NotFoundException {
