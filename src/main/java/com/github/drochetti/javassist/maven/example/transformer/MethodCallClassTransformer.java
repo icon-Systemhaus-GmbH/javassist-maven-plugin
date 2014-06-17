@@ -70,9 +70,9 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	}
 
 	@Override
-	protected boolean filter(final CtClass candidateClass) throws Exception {
+	protected boolean shouldTransform(final CtClass candidateClass) throws Exception {
 		return candidateClass != null && !isIntrospected(candidateClass)
-				&& super.filter(candidateClass);
+				&& super.shouldTransform(candidateClass);
 	}
 
 	@Override

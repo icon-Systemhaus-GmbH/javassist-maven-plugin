@@ -18,7 +18,6 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Test;
 
-@SuppressWarnings("restriction")
 public class JavassistTransformerExecutorTest {
     private final static File ROOT = new File("tmp");
     
@@ -83,14 +82,14 @@ public class JavassistTransformerExecutorTest {
 
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
         Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
         
         Capture<CtClass> capturedClass1 = new Capture<CtClass>();
         Capture<CtClass> capturedClass2 = new Capture<CtClass>();
 
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
-        EasyMock.expect(mockTransformer.filter(EasyMock.capture(capturedClass1))).andReturn(true);
+        EasyMock.expect(mockTransformer.shouldTransform(EasyMock.capture(capturedClass1))).andReturn(true);
         EasyMock.expectLastCall();
         mockTransformer.applyTransformations(EasyMock.capture(capturedClass2));
         EasyMock.expectLastCall();
@@ -119,11 +118,11 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
         Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
         
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
-        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(2);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
         EasyMock.expectLastCall().times(2);
@@ -150,11 +149,11 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
         Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
         
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
-        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
         EasyMock.expectLastCall().times(1);
@@ -167,7 +166,7 @@ public class JavassistTransformerExecutorTest {
         executor.setOutputDirectory(root.getAbsolutePath());
         
         //when
-        //execute twice should not applyTransformations twice, nor should it filter it twice
+        //execute twice should not applyTransformations twice, nor should it shouldTransform it twice
         executor.execute();
         executor.execute();
         
@@ -183,17 +182,17 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("filter", CtClass.class); 
+        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
         Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
         
         ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
-        EasyMock.expect(mockTransformer.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
         EasyMock.expectLastCall().times(1);
         
         ClassTransformer mockTransformer2 = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
-        EasyMock.expect(mockTransformer2.filter((CtClass)EasyMock.anyObject())).andReturn(true);
+        EasyMock.expect(mockTransformer2.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer2.applyTransformations((CtClass)EasyMock.anyObject());
         EasyMock.expectLastCall().times(1);
