@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/DECORATION/1.4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.4.0 http://maven.apache.org/xsd/decoration-1.4.0.xsd"
+ >
+
+  <bannerLeft>
+    <name>${project.name}</name>
+    <alt>${project.name}</alt>
+  </bannerLeft>
+
+  <publishDate position="left" format="yyyy-MM-dd" />
+  <version position="left" />
+
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.3.0</version>
+  </skin>
+
+  <custom>
+    <fluidoSkin>
+      <topBarEnabled>false</topBarEnabled>
+      <sideBarEnabled>true</sideBarEnabled>
+      <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
+      <leftColumnClass>span2</leftColumnClass>
+      <bodyColumnClass>span10</bodyColumnClass>
+      <gitHub>
+        <projectId>icon-Systemhaus-GmbH/javassist-maven-plugin</projectId>
+        <ribbonOrientation>right</ribbonOrientation>
+        <ribbonColor>black</ribbonColor>
+      </gitHub>
+    </fluidoSkin>
+  </custom>
+
+  <body>
+    <head />
+    <breadcrumbs />
+    <menu inherit="top" >
+      <item name="Home" href="index.html"/>
+    </menu>
+    <menu ref="parent" inherit="top" />
+    <menu ref="modules" inherit="top" />
+    <menu name="Reports" ref="reports" inherit="top" />
+    <footer />
+  </body>
+</project>
+
