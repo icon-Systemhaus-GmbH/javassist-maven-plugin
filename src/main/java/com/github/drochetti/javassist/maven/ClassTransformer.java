@@ -64,12 +64,14 @@ public abstract class ClassTransformer {
      * CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
      * return candidateClass.subtypeOf(myInterface);
      * </pre></code>
+     * Override this method to boost class transformations and discard classes you don't want
+     * to transform.
      *
      * @param candidateClass
      * @return {@code true} if the Class should be transformed; {@code false} otherwise.
      * @throws Exception
      */
-    protected boolean filter(final CtClass candidateClass) throws Exception {
+    protected boolean shouldTransform(final CtClass candidateClass) throws Exception {
         return true;
     }
 
@@ -163,7 +165,7 @@ public abstract class ClassTransformer {
                     classPool.importPackage(className);
                     final CtClass candidateClass = classPool.get(className);
                     initializeClass(candidateClass);
-                    if ( !hasStamp(candidateClass) && filter(candidateClass) ) {
+                    if ( !hasStamp(candidateClass) && shouldTransform(candidateClass) ) {
                         applyTransformations(candidateClass);
                         applyStamp(candidateClass);
                         candidateClass.writeFile(outputDir);
