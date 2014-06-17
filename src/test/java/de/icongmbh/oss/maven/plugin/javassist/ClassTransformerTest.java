@@ -63,6 +63,8 @@ public class ClassTransformerTest {
 
 	private static class _ClassStub extends Number {
 
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public int intValue() {
 			return 0;
