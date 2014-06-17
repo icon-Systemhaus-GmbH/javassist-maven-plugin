@@ -99,5 +99,5 @@ to fork, fix it, improve it and test it (the "Known limitations" above is a grea
 
 h2. Documentation
 
-* <a href="https://icon-Systemhaus-GmbH.github.io/">maven site</a>
+* <a href="https://icon-Systemhaus-GmbH.github.io/javassist-maven-plugin/">maven site</a>
 * <a href="https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin/wiki">wiki</a>

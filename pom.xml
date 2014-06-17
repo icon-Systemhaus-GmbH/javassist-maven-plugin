@@ -63,7 +63,7 @@
 		<site>
 			<id>github-pages-site</id>
 			<name>Deployment through GitHub's site deployment plugin</name>
-			<url>site/latest</url>
+			<url>https://icon-Systemhaus-GmbH.github.io/javassist-maven-plugin</url>
 		</site>
 	</distributionManagement>
 
@@ -71,6 +71,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.compiler.version>1.6</java.compiler.version>
 
+		<maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
 		<maven-plugin-api.version>3.2.1</maven-plugin-api.version>
 		<maven-plugin-annotations.version>3.3</maven-plugin-annotations.version>
 		<maven-core.version>3.2.1</maven-core.version>
@@ -295,7 +296,7 @@
 					</configuration>
 					<dependencies>
 						<dependency>
-							<!-- | allows markdown syntax for site generation. To use it place 
+							<!-- | allows markdown syntax for site generation. To use it place
 								files below | src/site/markdown/[filename].md -->
 							<groupId>org.apache.maven.doxia</groupId>
 							<artifactId>doxia-module-markdown</artifactId>
@@ -310,6 +311,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
 					<encoding>${encoding}</encoding>
 					<source>${java.compiler.version}</source>
@@ -372,7 +374,6 @@
 						<configuration>
 							<merge>true</merge>
 							<message>Creating site for ${project.version}</message>
-							<path>${project.distributionManagement.site.url}</path>
 							<excludes>
 								<exclude>dependencies/**</exclude>
 							</excludes>
