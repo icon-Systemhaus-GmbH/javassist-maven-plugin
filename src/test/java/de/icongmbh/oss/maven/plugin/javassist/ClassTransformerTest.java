@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
+import javassist.CtField.Initializer;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.ClassFile;
 
@@ -23,13 +24,14 @@ public class ClassTransformerTest {
 		final CtClass candidateClassMock = EasyMock.createMock("candidateClassMock",CtClass.class);
 		EasyMock.expect(candidateClassMock.getClassFile2()).andReturn(candidateClassFile).anyTimes();
 		final Capture<CtField> fieldCapture = new Capture<CtField>();
-		candidateClassMock.addField(EasyMock.capture(fieldCapture));
+		candidateClassMock.addField(EasyMock.capture(fieldCapture), EasyMock.anyObject(Initializer.class));
 		EasyMock.expectLastCall().times(1);
 		EasyMock.expect(candidateClassMock.isInterface()).andReturn(Boolean.FALSE);
 		EasyMock.expect(candidateClassMock.isFrozen()).andReturn(Boolean.FALSE);
+		EasyMock.expect(candidateClassMock.getName()).andReturn(_ClassStub.class.getName()).anyTimes();
 
 		EasyMock.replay(candidateClassMock);
-		sampleTransformer.applyStamp(candidateClassMock );
+		sampleTransformer.applyStamp(candidateClassMock);
 
 		EasyMock.verify(candidateClassMock);
 		Assert.assertThat(fieldCapture.getValue(), CoreMatchers.notNullValue());
@@ -44,10 +46,11 @@ public class ClassTransformerTest {
 		final CtClass candidateClassMock = EasyMock.createMock("candidateClassMock",CtClass.class);
 		EasyMock.expect(candidateClassMock.getClassFile2()).andReturn(candidateClassFile).anyTimes();
 		final Capture<CtField> fieldCapture = new Capture<CtField>();
-		candidateClassMock.addField(EasyMock.capture(fieldCapture));
+		candidateClassMock.addField(EasyMock.capture(fieldCapture), EasyMock.anyObject(Initializer.class));
 		EasyMock.expectLastCall().times(1);
 		EasyMock.expect(candidateClassMock.isInterface()).andReturn(Boolean.TRUE);
 		EasyMock.expect(candidateClassMock.isFrozen()).andReturn(Boolean.FALSE);
+		EasyMock.expect(candidateClassMock.getName()).andReturn(_InterfaceStub.class.getName()).anyTimes();
 
 		EasyMock.replay(candidateClassMock);
 		sampleTransformer.applyStamp(candidateClassMock );
