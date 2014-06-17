@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.github.drochetti</groupId>
+	<groupId>de.icongmbh.oss.maven.plugins</groupId>
 	<artifactId>javassist-maven-plugin-test-project1</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
@@ -19,15 +19,15 @@
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
-				<groupId>com.github.drochetti</groupId>
+				<groupId>de.icongmbh.oss.maven.plugins</groupId>
 				<artifactId>javassist-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<configuration>
-					<project implementation="com.github.drochetti.javassist.maven.stubs.Project1Stub" />
+					<project implementation="de.icongmbh.oss.maven.plugin.javassist.stubs.Project1Stub" />
 					<includeTestClasses>false</includeTestClasses>
 					<transformerClasses>
 						<transformerClass>
-							<className>com.github.drochetti.javassist.maven.SampleTransformer</className>
+							<className>de.icongmbh.oss.maven.plugin.javassist.SampleTransformer</className>
 						</transformerClass>
 					</transformerClasses>
 				</configuration>

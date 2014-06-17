@@ -8,9 +8,9 @@
 		<version>7</version>
 	</parent>
 
-	<groupId>com.github.drochetti</groupId>
+	<groupId>de.icongmbh.oss.maven.plugins</groupId>
 	<artifactId>javassist-maven-plugin</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>Javassist Maven Plugin</name>
@@ -52,6 +52,13 @@
 
 	<contributors>
 		<contributor>
+			<name>Stéphane NICOLAS</name>
+			<url>
+				https://github.com/stephanenicolas
+			</url>
+			<roles>
+				<role>Contributor</role>
+			</roles>
 		</contributor>
 	</contributors>
 
