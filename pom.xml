@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.github.drochetti</groupId>
+	<groupId>de.icongmbh.oss.maven.plugins</groupId>
 	<artifactId>javassist-maven-plugin</artifactId>
 	<version>1.0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
@@ -46,6 +46,13 @@
 
 	<contributors>
 		<contributor>
+			<name>Stéphane NICOLAS</name>
+			<url>
+				https://github.com/stephanenicolas
+			</url>
+			<roles>
+				<role>Contributor</role>
+			</roles>
 		</contributor>
 	</contributors>
 

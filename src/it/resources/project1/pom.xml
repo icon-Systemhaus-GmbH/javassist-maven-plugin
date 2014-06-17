@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.github.drochetti</groupId>
+	<groupId>de.icongmbh.oss.maven.plugins</groupId>
 	<artifactId>javassist-maven-plugin-test-project1</artifactId>
 	<version>@project.version@</version>
 	<packaging>jar</packaging>
@@ -20,7 +20,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.drochetti</groupId>
+			<groupId>de.icongmbh.oss.maven.plugins</groupId>
 			<artifactId>javassist-maven-plugin</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -29,14 +29,14 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>com.github.drochetti</groupId>
+				<groupId>de.icongmbh.oss.maven.plugins</groupId>
 				<artifactId>javassist-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<configuration>
 					<includeTestClasses>false</includeTestClasses>
 					<transformerClasses>
 						<transformerClass>
-							<className>com.github.drochetti.javassist.maven.example.transformer.MethodCallClassTransformer</className>
+							<className>de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer</className>
 						</transformerClass>
 					</transformerClasses>
 				</configuration>
