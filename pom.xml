@@ -111,6 +111,7 @@
 
 		<maven-plugin-plugin.version>3.2</maven-plugin-plugin.version>
 		<maven-gpg-plugin.version>1.1</maven-gpg-plugin.version>
+		<maven-release-plugin.version>2.1</maven-release-plugin.version>
 
 		<!-- https://github.com/github/maven-plugins -->
 		<github.global.server>github</github.global.server>
@@ -317,6 +318,17 @@
 							<version>${doxia-module-markdown.version}</version>
 						</dependency>
 					</dependencies>
+				</plugin>
+				<!-- @see: https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
+				<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<version>${maven-release-plugin.version}</version>
+						<configuration>
+								<mavenExecutorId>forked-path</mavenExecutorId>
+								<useReleaseProfile>false</useReleaseProfile>
+								<arguments>${arguments} -Psonatype-oss-release</arguments>
+						</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
