@@ -110,6 +110,7 @@
 		<maven-artifact.version>3.2.1</maven-artifact.version>
 
 		<maven-plugin-plugin.version>3.2</maven-plugin-plugin.version>
+		<maven-gpg-plugin.version>1.1</maven-gpg-plugin.version>
 
 		<!-- https://github.com/github/maven-plugins -->
 		<github.global.server>github</github.global.server>
@@ -435,4 +436,35 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<!-- @see: https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
