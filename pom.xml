@@ -76,7 +76,7 @@
 		<site>
 			<id>github-pages-site</id>
 			<name>Deployment through GitHub's site deployment plugin</name>
-			<url>https://icon-Systemhaus-GmbH.github.io/javassist-maven-plugin</url>
+			<url>git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git?gh-pages#</url>
 		</site>
 	</distributionManagement>
 
