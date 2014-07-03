@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
-		<version>7</version>
+		<version>9</version>
 	</parent>
 
 	<groupId>de.icongmbh.oss.maven.plugins</groupId>
@@ -94,6 +94,8 @@
 		<plexus-utils.version>3.0.17</plexus-utils.version>
 		<plexus-archiver.version>2.4.4</plexus-archiver.version>
 		<maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
+		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
+		<maven-release-plugin.version>2.4.2</maven-release-plugin.version>
 
 		<commons-io.version>2.4</commons-io.version>
 		<slf4j-api.version>1.7.7</slf4j-api.version>
@@ -294,6 +296,16 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>${maven-gpg-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>${maven-release-plugin.version}</version>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-plugin-plugin</artifactId>
