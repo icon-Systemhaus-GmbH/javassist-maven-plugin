@@ -25,6 +25,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import javassist.build.IClassTransformer;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -63,7 +65,7 @@ public class JavassistMojo extends AbstractMojo {
 
     private static final Logger logger = LoggerFactory.getLogger(JavassistMojo.class);
 
-    private static final Class<ClassTransformer> TRANSFORMER_TYPE = ClassTransformer.class;
+    private static final Class<IClassTransformer> TRANSFORMER_TYPE = IClassTransformer.class;
 
 	@Parameter(defaultValue = "${project}", property = "javassist.project", required = true, readonly = true)
 	private MavenProject project;
@@ -147,7 +149,7 @@ public class JavassistMojo extends AbstractMojo {
 	 * @see #instantiateTransformerClass(ClassLoader,
 	 *      ClassTransformerConfiguration)
 	 */
-	protected ClassTransformer[] instantiateTransformerClasses(
+	protected IClassTransformer[] instantiateTransformerClasses(
 			final ClassLoader contextClassLoader,
 			final ClassTransformerConfiguration... transformerClasses)
 			throws Exception {
@@ -155,16 +157,16 @@ public class JavassistMojo extends AbstractMojo {
 			throw new MojoExecutionException(
 					"Invalid transformer classes passed");
 		}
-		final List<ClassTransformer> transformerInstances = new LinkedList<ClassTransformer>();
+		final List<IClassTransformer> transformerInstances = new LinkedList<IClassTransformer>();
 		for (ClassTransformerConfiguration transformerClass : transformerClasses) {
-			final ClassTransformer transformerInstance = instantiateTransformerClass(
+			final IClassTransformer transformerInstance = instantiateTransformerClass(
 					contextClassLoader, transformerClass);
 			configureTransformerInstance(transformerInstance,
 					transformerClass.getProperties());
 			transformerInstances.add(transformerInstance);
 		}
 		return transformerInstances
-				.toArray(new ClassTransformer[transformerInstances.size()]);
+				.toArray(new IClassTransformer[transformerInstances.size()]);
 	}
 
 	/**
@@ -180,7 +182,7 @@ public class JavassistMojo extends AbstractMojo {
 	 * @throws IllegalAccessException
 	 * @throws MojoExecutionException
 	 */
-	protected ClassTransformer instantiateTransformerClass(
+	protected IClassTransformer instantiateTransformerClass(
 			final ClassLoader contextClassLoader,
 			final ClassTransformerConfiguration transformerClass)
 			throws ClassNotFoundException, NullPointerException,
@@ -215,12 +217,12 @@ public class JavassistMojo extends AbstractMojo {
 	 * @throws Exception 
 	 */
 	protected void configureTransformerInstance(
-			final ClassTransformer transformerInstance,
+			final IClassTransformer transformerInstance,
 			final Properties properties) throws Exception {
-		if (null == transformerInstance) {
+		if (null == transformerInstance || !(transformerInstance instanceof ClassTransformer)) {
 			return;
 		}
-		transformerInstance.configure(properties);
+		((ClassTransformer)transformerInstance).configure(properties);
 	}
 
 	private URL resolveUrl(final String resource) {
