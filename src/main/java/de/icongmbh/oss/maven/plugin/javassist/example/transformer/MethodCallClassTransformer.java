@@ -22,6 +22,7 @@ import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtField.Initializer;
 import javassist.NotFoundException;
+import javassist.build.JavassistBuildException;
 import javassist.bytecode.AccessFlag;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
@@ -70,40 +71,42 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	}
 
 	@Override
-	protected boolean shouldTransform(final CtClass candidateClass) throws Exception {
-		return candidateClass != null && !isIntrospected(candidateClass)
-				&& super.shouldTransform(candidateClass);
+	public boolean shouldTransform(final CtClass candidateClass) throws JavassistBuildException {
+		return candidateClass != null && !isIntrospected(candidateClass);
 	}
 
 	@Override
-	protected void applyTransformations(final CtClass classToTransform)
-			throws Exception {
+	public void applyTransformations(final CtClass classToTransform)  throws JavassistBuildException {
 		if (null == classToTransform) {
 			return;
 		}
-		classToTransform.instrument(new ExprEditor() {
-			@Override
-			public void edit(final MethodCall m) throws CannotCompileException {
-				final String statement = getStatement(m.getClassName(),
-						m.getMethodName());
-				if (statement != null) {
-					try {
-						m.replace(statement);
-					} catch (final CannotCompileException e) {
-						throw new CannotCompileException(String.format(
-								"Compile statement '%1$s' FAILED with: %2$s",
-								statement, e.getMessage()), e);
+		try {
+			classToTransform.instrument(new ExprEditor() {
+				@Override
+				public void edit(final MethodCall m) throws CannotCompileException {
+					final String statement = getStatement(m.getClassName(),
+							m.getMethodName());
+					if (statement != null) {
+						try {
+							m.replace(statement);
+						} catch (final CannotCompileException e) {
+							throw new CannotCompileException(String.format(
+									"Compile statement '%1$s' FAILED with: %2$s",
+									statement, e.getMessage()), e);
+						}
 					}
 				}
-			}
-		});
-		// insert internal introspection state field
-		final CtField introspectedField = new CtField(CtClass.booleanType,
-				ALREADY_INTROSPECTED_FIELD_NAME, classToTransform);
-		introspectedField.setModifiers(AccessFlag.PUBLIC | AccessFlag.STATIC
-				| AccessFlag.FINAL);
-		classToTransform
-				.addField(introspectedField, Initializer.constant(true));
+			});
+			// insert internal introspection state field
+			final CtField introspectedField = new CtField(CtClass.booleanType,
+					ALREADY_INTROSPECTED_FIELD_NAME, classToTransform);
+			introspectedField.setModifiers(AccessFlag.PUBLIC | AccessFlag.STATIC
+					| AccessFlag.FINAL);
+			classToTransform
+					.addField(introspectedField, Initializer.constant(true));
+		} catch (CannotCompileException e) {
+			throw new JavassistBuildException(e);
+		}
 	}
 
 	private boolean isIntrospected(final CtClass candidateClass) {
