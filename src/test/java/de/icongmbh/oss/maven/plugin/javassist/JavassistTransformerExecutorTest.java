@@ -5,9 +5,16 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
+import javassist.CannotCompileException;
 import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtField.Initializer;
+import javassist.build.IClassTransformer;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.ClassFile;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -15,7 +22,9 @@ import javax.tools.ToolProvider;
 import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class JavassistTransformerExecutorTest {
@@ -58,14 +67,20 @@ public class JavassistTransformerExecutorTest {
     @Test
     public void test() throws Exception {
         //given
+        createOneTestClass(ROOT);
+
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 
-        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class);
-        mockTransformer.transform(EasyMock.anyString(), EasyMock.anyString());
+        IClassTransformer mockTransformer = EasyMock.createMock(IClassTransformer.class);
+        EasyMock.expect(mockTransformer.shouldTransform((CtClass) EasyMock.anyObject())).andReturn(true);
+        mockTransformer.applyTransformations((CtClass) EasyMock.anyObject());
         EasyMock.expectLastCall();
         EasyMock.replay(mockTransformer);
 
         executor.setTransformerClasses(mockTransformer);
+        File root = new File("tmp");
+        executor.setInputDirectory(root.getAbsolutePath());
+        executor.setOutputDirectory(root.getAbsolutePath());
 
         //when
         executor.execute();
@@ -82,15 +97,11 @@ public class JavassistTransformerExecutorTest {
 
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
 
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
-        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
-        
         Capture<CtClass> capturedClass1 = new Capture<CtClass>();
         Capture<CtClass> capturedClass2 = new Capture<CtClass>();
 
-        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        IClassTransformer mockTransformer = EasyMock.createMock(IClassTransformer.class);
         EasyMock.expect(mockTransformer.shouldTransform(EasyMock.capture(capturedClass1))).andReturn(true);
-        EasyMock.expectLastCall();
         mockTransformer.applyTransformations(EasyMock.capture(capturedClass2));
         EasyMock.expectLastCall();
         EasyMock.replay(mockTransformer);
@@ -118,10 +129,7 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
-        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
-        
-        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        IClassTransformer mockTransformer = EasyMock.createMock(IClassTransformer.class);
         EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(2);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
@@ -149,10 +157,7 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
-        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
-        
-        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        IClassTransformer mockTransformer = EasyMock.createMock(IClassTransformer.class);
         EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
@@ -182,16 +187,13 @@ public class JavassistTransformerExecutorTest {
         
         JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
         
-        Method methodFilter = ClassTransformer.class.getDeclaredMethod("shouldTransform", CtClass.class); 
-        Method methodApplyTransformation = ClassTransformer.class.getDeclaredMethod("applyTransformations", CtClass.class);
-        
-        ClassTransformer mockTransformer = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        IClassTransformer mockTransformer = EasyMock.createMock(IClassTransformer.class);
         EasyMock.expect(mockTransformer.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer.applyTransformations((CtClass)EasyMock.anyObject());
         EasyMock.expectLastCall().times(1);
         
-        ClassTransformer mockTransformer2 = EasyMock.createMock(ClassTransformer.class, methodFilter, methodApplyTransformation);
+        IClassTransformer mockTransformer2 = EasyMock.createMock(IClassTransformer.class);
         EasyMock.expect(mockTransformer2.shouldTransform((CtClass)EasyMock.anyObject())).andReturn(true);
         EasyMock.expectLastCall().times(1);
         mockTransformer2.applyTransformations((CtClass)EasyMock.anyObject());
@@ -215,5 +217,81 @@ public class JavassistTransformerExecutorTest {
         //then
         EasyMock.verify( mockTransformer );
     }
+    
+	@Test
+	public void testModifierOnStampField_class() throws CannotCompileException {
+        JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+
+		final ClassFile candidateClassFile = new ClassFile(false, _ClassStub.class.getName(), null);
+		final CtClass candidateClassMock = EasyMock.createMock("candidateClassMock",CtClass.class);
+		EasyMock.expect(candidateClassMock.getClassFile2()).andReturn(candidateClassFile).anyTimes();
+		final Capture<CtField> fieldCapture = new Capture<CtField>();
+		candidateClassMock.addField(EasyMock.capture(fieldCapture), EasyMock.anyObject(Initializer.class));
+		EasyMock.expectLastCall().times(1);
+		EasyMock.expect(candidateClassMock.isInterface()).andReturn(Boolean.FALSE);
+		EasyMock.expect(candidateClassMock.isFrozen()).andReturn(Boolean.FALSE);
+		EasyMock.expect(candidateClassMock.getName()).andReturn(_ClassStub.class.getName()).anyTimes();
+
+		EasyMock.replay(candidateClassMock);
+		executor.applyStamp(candidateClassMock);
+
+		EasyMock.verify(candidateClassMock);
+		Assert.assertThat(fieldCapture.getValue(), CoreMatchers.notNullValue());
+		final CtField ctField = fieldCapture.getValue();
+		Assert.assertThat(ctField.getModifiers(), CoreMatchers.equalTo(AccessFlag.PRIVATE | AccessFlag.STATIC | AccessFlag.FINAL));
+	}
+
+	@Test
+	public void testModifierOnStampField_interface() throws CannotCompileException {
+        JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+
+		final ClassFile candidateClassFile = new ClassFile(true, _InterfaceStub.class.getName(), null);
+		final CtClass candidateClassMock = EasyMock.createMock("candidateClassMock",CtClass.class);
+		EasyMock.expect(candidateClassMock.getClassFile2()).andReturn(candidateClassFile).anyTimes();
+		final Capture<CtField> fieldCapture = new Capture<CtField>();
+		candidateClassMock.addField(EasyMock.capture(fieldCapture), EasyMock.anyObject(Initializer.class));
+		EasyMock.expectLastCall().times(1);
+		EasyMock.expect(candidateClassMock.isInterface()).andReturn(Boolean.TRUE);
+		EasyMock.expect(candidateClassMock.isFrozen()).andReturn(Boolean.FALSE);
+		EasyMock.expect(candidateClassMock.getName()).andReturn(_InterfaceStub.class.getName()).anyTimes();
+
+		EasyMock.replay(candidateClassMock);
+		executor.applyStamp(candidateClassMock );
+
+		EasyMock.verify(candidateClassMock);
+		Assert.assertThat(fieldCapture.getValue(), CoreMatchers.notNullValue());
+		final CtField ctField = fieldCapture.getValue();
+		Assert.assertThat(ctField.getModifiers(), CoreMatchers.equalTo(AccessFlag.PUBLIC | AccessFlag.STATIC | AccessFlag.FINAL));
+	}
+
+	private static class _ClassStub extends Number {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public int intValue() {
+			return 0;
+		}
+
+		@Override
+		public long longValue() {
+			return 0;
+		}
+
+		@Override
+		public float floatValue() {
+			return 0;
+		}
+
+		@Override
+		public double doubleValue() {
+			return 0;
+		}
+		
+	}
+	
+	private static interface _InterfaceStub extends Serializable {
+		// nothing
+	}
 
 }
