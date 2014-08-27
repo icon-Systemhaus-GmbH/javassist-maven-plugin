@@ -105,7 +105,7 @@
 		<slf4j-simple.version>1.7.7</slf4j-simple.version>
 
 		<javassist.version>3.18.1-GA</javassist.version>
-		<javassist-build-plugin-api.version>1.0.0-SNAPSHOT</javassist-build-plugin-api.version>
+		<javassist-build-plugin-api.version>1.0.0</javassist-build-plugin-api.version>
 		
 		<junit.version>4.11</junit.version>
 		<easymock.version>3.2</easymock.version>
