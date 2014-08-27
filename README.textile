@@ -1,6 +1,6 @@
 h1. Javassist Maven Plugin
 
-p. <a href="https://maven-badges.herokuapp.com/maven-central/de.icongmbh.oss.maven.plugins/javassist-build-plugin"><img src="https://maven-badges.herokuapp.com/maven-central/de.icongmbh.oss.maven.plugins/javassist-build-plugin/badge.svg" /></a> <a href="https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin"><img src="https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin.svg" /></a>
+p. <a href="https://maven-badges.herokuapp.com/maven-central/de.icongmbh.oss.maven.plugins/javassist-maven-plugin"><img src="https://maven-badges.herokuapp.com/maven-central/de.icongmbh.oss.maven.plugins/javassist-maven-plugin/badge.svg" /></a> <a href="https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin"><img src="https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin.svg" /></a>
 
 p. A simple Maven plugin that can apply Javassist tranformation on classes after compilation.
 
