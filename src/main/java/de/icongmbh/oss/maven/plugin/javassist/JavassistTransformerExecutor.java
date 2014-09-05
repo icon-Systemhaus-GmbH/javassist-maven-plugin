@@ -220,12 +220,12 @@ public class JavassistTransformerExecutor {
                         ++i;
                     }
                 } catch (final NotFoundException e) {
-                    logger.warn("Class {} could not not be resolved due to dependencies not found on " +
+                    logger.warn("Class {} could not be resolved due to dependencies not found on " +
                             "current classpath (usually your class depends on \"provided\" scoped dependencies).",
                             className);
                     continue;
                 } catch ( final Exception ex) { // EOFException ...
-                    logger.error("Class {} could not not be instrumented due to initialize FAILED.",className, ex);
+                    logger.error("Class {} could not be instrumented due to initialize FAILED.",className, ex);
                     continue;
                 }
             }
