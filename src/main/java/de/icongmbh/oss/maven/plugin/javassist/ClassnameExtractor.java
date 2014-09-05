@@ -43,7 +43,7 @@ public class ClassnameExtractor {
 	 * e.g.:
 	 * </p>
 	 * <ul>
-	 * <li>parantDirectory: <code>/tmp/my/parant/src/</code></li>
+	 * <li>parentDirectory: <code>/tmp/my/parent/src/</code></li>
 	 * <li>classFile: <code>/tmp/my/parent/src/foo/bar/MyApp.class</li>
 	 * </ul>
 	 * returns: <code>foo.bar.MyApp</code>
