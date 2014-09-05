@@ -87,7 +87,6 @@ public class ToStringTransformer extends ClassTransformer {
 
 h2. Known limitations
 
-* Not published on Maven Central or Sonatype OSS repos yet (Critical);
 * Don't instrument classes inside .jar files, only classes on your project;
 * Lack of unit tests and sample app;
 * Further implementations of @de.icongmbh.oss.maven.plugin.javassist.ClassTransformer@ can enable easier interactions with the Javassist API (provide some utilities).
