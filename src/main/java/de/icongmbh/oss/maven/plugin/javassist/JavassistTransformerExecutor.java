@@ -15,10 +15,7 @@
  */
 package de.icongmbh.oss.maven.plugin.javassist;
 
-import static java.lang.Thread.currentThread;
-
 import java.io.File;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -51,36 +48,13 @@ public class JavassistTransformerExecutor {
 
     private static final String STAMP_FIELD_NAME = "__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__";
 
-	private URL[] additionalClassPath;
 	private IClassTransformer[] transformerInstances;
 	private String inputDirectory;
 	private String outputDirectory;
-	private ClassLoader originalContextClassLoader = null;
-	private ClassLoader externalClassLoader;
 
     private static Logger logger = LoggerFactory.getLogger(JavassistTransformerExecutor.class);
 
 	public JavassistTransformerExecutor() {
-		this((ClassLoader) null);
-	}
-
-	/**
-	 * Use passed class loader as context class loader before {@link #execute()}
-	 * and reset afterwards.
-	 * 
-	 * @param classLoader
-	 */
-	public JavassistTransformerExecutor(final ClassLoader classLoader) {
-		this.externalClassLoader = classLoader;
-	}
-
-	/**
-	 * Passed {@link URL}s will be enriching the class path for transforming
-	 * 
-	 * @param additionalClassPath
-	 */
-	public void setAdditionalClassPath(final URL... additionalClassPath) {
-		this.additionalClassPath = additionalClassPath;
 	}
 
 	/**
@@ -110,16 +84,9 @@ public class JavassistTransformerExecutor {
 	}
 
 	public void execute() throws Exception {
-		originalContextClassLoader = currentThread().getContextClassLoader();
-		if (externalClassLoader != null
-				&& externalClassLoader != originalContextClassLoader) {
-			currentThread().setContextClassLoader(externalClassLoader);
-		}
-		loadAdditionalClassPath(additionalClassPath);
 		for (final IClassTransformer transformer : transformerInstances) {
 			execute(transformer);
 		}
-		currentThread().setContextClassLoader(originalContextClassLoader);
 	}
 
 	protected void execute(final IClassTransformer transformer) {
@@ -234,19 +201,6 @@ public class JavassistTransformerExecutor {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
-
-	private void loadAdditionalClassPath(final URL... urls) {
-		if (null == urls || urls.length <= 0) {
-			return;
-		}
-		final ClassLoader contextClassLoader = currentThread()
-				.getContextClassLoader();
-		final URLClassLoader pluginClassLoader = URLClassLoader.newInstance(
-				urls, contextClassLoader);
-		ClassPool.getDefault().insertClassPath(
-				new LoaderClassPath(pluginClassLoader));
-		currentThread().setContextClassLoader(pluginClassLoader);
-	}
 	
     protected Iterator<String> iterateClassnames(final String dir) {
         final String[] extensions = { ".class" };
