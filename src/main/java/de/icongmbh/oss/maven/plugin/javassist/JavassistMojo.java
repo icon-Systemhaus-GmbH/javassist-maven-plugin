@@ -20,6 +20,7 @@ import static java.lang.Thread.currentThread;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,24 +98,33 @@ public class JavassistMojo extends AbstractMojo {
 			return;
 		}
 
-		final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();
+		final ClassLoader originalContextClassLoader =
+			currentThread().getContextClassLoader();
+
 		try {
 			final List<URL> classPath = new ArrayList<URL>();
-			String inputDirectory = buildDir == null ? project.getBuild()
-					.getOutputDirectory() : computeDir(buildDir);
-			String testInputDirectory = testBuildDir == null ? project.getBuild()
-					.getTestOutputDirectory() : computeDir(testBuildDir);
-			final List<String> runtimeClasspathElements = project
-					.getRuntimeClasspathElements();
-			for (final String runtimeResource : runtimeClasspathElements) {
+
+			for (final String runtimeResource : project
+				.getRuntimeClasspathElements()) {
 				classPath.add(resolveUrl(runtimeResource));
 			}
+
+			final String inputDirectory = buildDir == null ?
+				project.getBuild().getOutputDirectory() : computeDir(buildDir);
+
 			classPath.add(resolveUrl(inputDirectory));
 
-			executor.setAdditionalClassPath(classPath.toArray(new URL[classPath
-					.size()]));
+			loadAdditionalClassPath(classPath);
+
+			final JavassistTransformerExecutor executor =
+				new JavassistTransformerExecutor();
+
+			String testInputDirectory =
+				testBuildDir == null ? project.getBuild()
+					.getTestOutputDirectory() : computeDir(testBuildDir);
+
 			executor.setTransformerClasses(instantiateTransformerClasses(
-					currentThread().getContextClassLoader(), transformerClasses));
+				currentThread().getContextClassLoader(), transformerClasses));
 			executor.setInputDirectory(inputDirectory);
 			executor.setOutputDirectory(inputDirectory);
 			executor.execute();
@@ -126,10 +136,29 @@ public class JavassistMojo extends AbstractMojo {
 				executor.execute();
 			}
 
-		} catch (final Exception e) {
+		}
+		catch (final Exception e) {
 			getLog().error(e.getMessage(), e);
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
+		finally {
+			currentThread().setContextClassLoader(originalContextClassLoader);
+		}
+	}
+
+	private void loadAdditionalClassPath(final List<URL> classPath) {
+		if (classPath.isEmpty()) {
+			return;
+		}
+		final ClassLoader contextClassLoader =
+			currentThread().getContextClassLoader();
+
+		final URLClassLoader pluginClassLoader =
+			URLClassLoader.newInstance(
+				classPath.toArray(new URL[classPath.size()]),
+				contextClassLoader);
+
+		currentThread().setContextClassLoader(pluginClassLoader);
 	}
 
     private String computeDir(String dir) {

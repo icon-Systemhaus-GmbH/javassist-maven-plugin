@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 
 import javassist.CannotCompileException;
 import javassist.CtClass;
@@ -89,7 +88,6 @@ public class JavassistTransformerExecutorTest {
         EasyMock.verify( mockTransformer );
     }
     
-    @SuppressWarnings("deprecation")
     @Test
     public void testWithRealClass() throws Exception {
         //given
@@ -108,7 +106,6 @@ public class JavassistTransformerExecutorTest {
 
         executor.setTransformerClasses(mockTransformer);
         File root = new File("tmp");
-        executor.setAdditionalClassPath(root.toURL());
         executor.setInputDirectory(root.getAbsolutePath());
         executor.setOutputDirectory(root.getAbsolutePath());
 
@@ -121,7 +118,6 @@ public class JavassistTransformerExecutorTest {
         assertEquals("test.Test", capturedClass2.getValue().getName());
     }
     
-    @SuppressWarnings("deprecation")
     @Test
     public void testWithRealClassAndInnerClass() throws Exception {
         //given
@@ -138,7 +134,6 @@ public class JavassistTransformerExecutorTest {
         
         executor.setTransformerClasses(mockTransformer);
         File root = new File("tmp");
-        executor.setAdditionalClassPath(root.toURL());
         executor.setInputDirectory(root.getAbsolutePath());
         executor.setOutputDirectory(root.getAbsolutePath());
         
@@ -149,7 +144,6 @@ public class JavassistTransformerExecutorTest {
         EasyMock.verify( mockTransformer );
     }
     
-    @SuppressWarnings("deprecation")
     @Test
     public void testStamping() throws Exception {
         //given
@@ -166,7 +160,6 @@ public class JavassistTransformerExecutorTest {
         
         executor.setTransformerClasses(mockTransformer);
         File root = new File("tmp");
-        executor.setAdditionalClassPath(root.toURL());
         executor.setInputDirectory(root.getAbsolutePath());
         executor.setOutputDirectory(root.getAbsolutePath());
         
@@ -179,7 +172,6 @@ public class JavassistTransformerExecutorTest {
         EasyMock.verify( mockTransformer );
     }
     
-    @SuppressWarnings("deprecation")
     @Test
     public void testStamping_with_2_different_transformers() throws Exception {
         //given
@@ -204,7 +196,6 @@ public class JavassistTransformerExecutorTest {
         
         executor.setTransformerClasses(mockTransformer);
         File root = new File("tmp");
-        executor.setAdditionalClassPath(root.toURL());
         executor.setInputDirectory(root.getAbsolutePath());
         executor.setOutputDirectory(root.getAbsolutePath());
         
