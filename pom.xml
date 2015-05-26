@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -71,12 +72,8 @@
 
 	<distributionManagement>
 		<!-- http://khuxtable.github.io/wagon-gitsite/usage.html -->
-		<!-- add to settings.xml:
-				<server>
-						<id>github-project-site</id>
-						<username>git</username>
-				</server>
-		-->
+		<!-- add to settings.xml: <server> <id>github-project-site</id> <username>git</username> 
+			</server> -->
 		<site>
 			<id>github-project-site</id>
 			<url>gitsite:git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</url>
@@ -87,6 +84,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.compiler.version>1.6</java.compiler.version>
 
+    <maven-enforcer-plugin>1.3.1</maven-enforcer-plugin>
 		<maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
 		<maven-plugin-api.version>3.2.1</maven-plugin-api.version>
 		<maven-plugin-annotations.version>3.3</maven-plugin-annotations.version>
@@ -96,6 +94,7 @@
 		<wagon-gitsite.version>0.3.1</wagon-gitsite.version>
 		<plexus-utils.version>3.0.17</plexus-utils.version>
 		<plexus-archiver.version>2.4.4</plexus-archiver.version>
+		<plexus-classworlds.version>2.5.1</plexus-classworlds.version>
 		<maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
 		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
 		<maven-release-plugin.version>2.4.2</maven-release-plugin.version>
@@ -106,11 +105,10 @@
 
 		<javassist.version>3.18.1-GA</javassist.version>
 		<javassist-build-plugin-api.version>1.0.0</javassist-build-plugin-api.version>
-		
+
 		<junit.version>4.11</junit.version>
 		<easymock.version>3.2</easymock.version>
 		<maven-plugin-testing-harness.version>3.1.0</maven-plugin-testing-harness.version>
-		<maven-project.version>3.0-alpha-2</maven-project.version>
 		<maven-compat.version>3.2.1</maven-compat.version>
 		<plexus-interpolation.version>1.19</plexus-interpolation.version>
 		<maven-artifact.version>3.2.1</maven-artifact.version>
@@ -142,6 +140,11 @@
 				<artifactId>plexus-utils</artifactId>
 				<version>${plexus-utils.version}</version>
 			</dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-classworlds</artifactId>
+        <version>${plexus-classworlds.version}</version>
+      </dependency>
 			<dependency>
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-archiver</artifactId>
@@ -174,7 +177,6 @@
 				<artifactId>javassist-build-plugin-api</artifactId>
 				<version>${javassist-build-plugin-api.version}</version>
 			</dependency>
-			
 
 			<!--TESTING -->
 			<dependency>
@@ -193,12 +195,6 @@
 				<groupId>org.apache.maven.plugin-testing</groupId>
 				<artifactId>maven-plugin-testing-harness</artifactId>
 				<version>${maven-plugin-testing-harness.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-project</artifactId>
-				<version>${maven-project.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -227,6 +223,12 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-plugin-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-classworlds</artifactId>
+        </exclusion>
+      </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.maven.plugin-tools</groupId>
@@ -235,6 +237,12 @@
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.plexus</groupId>
+					<artifactId>plexus-classworlds</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
@@ -244,6 +252,10 @@
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-archiver</artifactId>
 		</dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-classworlds</artifactId>
+    </dependency>
 
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -265,7 +277,7 @@
 			<groupId>com.github.stephanenicolas.javassist</groupId>
 			<artifactId>javassist-build-plugin-api</artifactId>
 		</dependency>
-				
+
 		<!--TESTING -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -280,11 +292,6 @@
 		<dependency>
 			<groupId>org.apache.maven.plugin-testing</groupId>
 			<artifactId>maven-plugin-testing-harness</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.maven</groupId>
-			<artifactId>maven-project</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -307,6 +314,16 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+          <configuration>
+            <rules>
+                <dependencyConvergence/>
+              </rules>
+          </configuration>
+        </plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
@@ -342,16 +359,16 @@
 					<version>${maven-site-plugin.version}</version>
 					<dependencies>
 						<dependency>
-							<!-- | allows markdown syntax for site generation. To use it place
+							<!-- | allows markdown syntax for site generation. To use it place 
 								files below | src/site/markdown/[filename].md -->
 							<groupId>org.apache.maven.doxia</groupId>
 							<artifactId>doxia-module-markdown</artifactId>
 							<version>${doxia-module-markdown.version}</version>
 						</dependency>
 						<dependency>
-								<groupId>org.kathrynhuxtable.maven.wagon</groupId>
-								<artifactId>wagon-gitsite</artifactId>
-								<version>${wagon-gitsite.version}</version>
+							<groupId>org.kathrynhuxtable.maven.wagon</groupId>
+							<artifactId>wagon-gitsite</artifactId>
+							<version>${wagon-gitsite.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
