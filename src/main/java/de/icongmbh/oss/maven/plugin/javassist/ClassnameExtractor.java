@@ -28,7 +28,6 @@ import java.util.List;
 /**
  * Provides methods for extract class name from file name.
  * 
- * @author Uwe Barthel
  */
 public class ClassnameExtractor {
 
@@ -37,21 +36,20 @@ public class ClassnameExtractor {
 	}
 
 	/**
-	 * Remove passed parent directory from passed file name and replace
-	 * directory separator with dots.
+	 * Remove parent directory from file name and replace directory separator with dots.
 	 * <p>
 	 * e.g.:
 	 * </p>
 	 * <ul>
-	 * <li>parentDirectory: <code>/tmp/my/parent/src/</code></li>
-	 * <li>classFile: <code>/tmp/my/parent/src/foo/bar/MyApp.class</li>
+	 * <li>parentDirectory: {@code /tmp/my/parent/src/}</li>
+	 * <li>classFile: {@code /tmp/my/parent/src/foo/bar/MyApp.class}</li>
 	 * </ul>
-	 * returns: <code>foo.bar.MyApp</code>
+	 * returns: {@code foo.bar.MyApp}
 	 * 
-	 * @param parentDirectory
-	 * @param classFile
-	 * @return class name extracted from file name or <code>null</code>
-	 * @throws IOException
+	 * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+	 * @param classFile to extract the name from. Maybe {@code null}
+	 * @return class name extracted from file name or {@code null}
+	 * @throws IOException by file operations
 	 */
 	public static String extractClassNameFromFile(final File parentDirectory,
 			final File classFile) throws IOException {
@@ -66,8 +64,11 @@ public class ClassnameExtractor {
 	}
 
 	/**
-	 * @param parentDirectory
-	 * @param classFiles
+	 * Iterate over the class files and remove the parent directory from file name
+	 * and replace directory separator with dots.
+	 * 
+	 * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+	 * @param classFiles array to extract the names from. Must not be {@code null}.
 	 * @return iterator of full qualified class names based on passed classFiles
 	 * @see #iterateClassnames(File, Iterator)
 	 */
@@ -78,16 +79,16 @@ public class ClassnameExtractor {
 	}
 
 	/**
-	 * Wrapping passed iterator (as reference) of class file names and extract full qualified class name on
+	 * Wrapping the iterator (as reference) of class file names and extract full qualified class name on
 	 * {@link Iterator#next()}.
 	 * <p>
-	 * It is possible that {@link Iterator#hasNext()} returns <code>true</code>
-	 * and {@link Iterator#next()} returns <code>null</code>.
-	 * 
-	 * @param parentDirectory
-	 * @param classFiles
+	 * It is possible that {@link Iterator#hasNext()} returns {@code true}
+	 * and {@link Iterator#next()} returns {@code null}.
+	 * </p>
+	 * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+	 * @param classFileIterator to extract the names from. Must not be {@code null}.
 	 * @return iterator of full qualified class names based on passed classFiles
-	 *         or <code>null</code>
+	 *         or {@code null}
 	 * @see #extractClassNameFromFile(File, File)
 	 */
 	// DANGEROUS call by reference
@@ -120,18 +121,18 @@ public class ClassnameExtractor {
 	}
 
 	/**
-	 * Wrapping passed list (as reference) of class file names and extract full qualified class name on
+	 * Wrapping the list (as reference) of class file names and extract full qualified class name on
 	 * {@link Iterator#next()}.
 	 * <p>
 	 * It is possible that {@link Iterator#hasNext()} returns <code>true</code>
-	 * and {@link Iterator#next()} returns <code>null</code>.
+	 * and {@link Iterator#next()} returns {@code null}.
 	 * 
-	 * @param parentDirectory
-	 * @param classFiles
+	 * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+	 * @param classFileList to extract the names from. Maybe {@code null}
 	 * @return list of full qualified class names based on passed classFiles or
-	 *         <code>null</code>
-	 * @throws IOException
-	 * @see {@link #extractClassNameFromFile(File, File)}
+	 *         {@code null}
+	 * @throws IOException by file operations
+	 * @see #extractClassNameFromFile(File, File)
 	 */
 	// DANGEROUS call by reference
 	public static List<String> listClassnames(final File parentDirectory,
@@ -147,12 +148,12 @@ public class ClassnameExtractor {
 	}
 
 	/**
-	 * @param parentDirectory
-	 * @param classFiles
+	 * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+	 * @param classFileList to extract the names from. Maybe {@code null}
 	 * @return list of full qualified class names based on passed classFiles or
-	 *         <code>null</code>
-	 * @throws IOException
-	 * @see {@link #extractClassNameFromFile(File, File)}
+	 *         {@code null}
+	 * @throws IOException by file operations
+	 * @see #extractClassNameFromFile(File, File)
 	 */
 	public static List<String> listClassnames(final File parentDirectory,
 			final String... classFileList) throws IOException {

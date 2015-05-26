@@ -31,8 +31,8 @@ public abstract class ClassTransformer implements IClassTransformer {
 
     /**
      * <p>Configure this instance by passing {@link Properties}.</p>
-     * @param properties maybe <code>null</code> or empty
-     * @throws Exception 
+     * @param properties maybe {@code null} or empty
+     * @throws Exception if configuration failed.
      */
     public void configure(final Properties properties) throws Exception {
         return;

@@ -42,8 +42,7 @@ import org.slf4j.LoggerFactory;
  * Maven plugin that will apply <a
  * href="http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/">Javassist</a>
  * class transformations on compiled classes (bytecode instrumentation).
- * <br/>
- * Example plugin configuration :
+ * <p>Example plugin configuration :</p>
  * 
  * <pre>
  *   &lt;configuration&gt;
@@ -57,9 +56,10 @@ import org.slf4j.LoggerFactory;
  *           &lt;/transformerClass&gt;
  *       &lt;/transformerClasses&gt;
  *   &lt;/configuration&gt;
- * </pre> 
+ * </pre>
+ * 
  * @author Daniel Rochetti
- * @author Uwe Barthel
+ * @author barthel
  */
 @Mojo(name = "javassist", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class JavassistMojo extends AbstractMojo {
@@ -171,10 +171,11 @@ public class JavassistMojo extends AbstractMojo {
     }
 
 	/**
-	 * @param contextClassLoader
-	 * @param transformerClasses
+	 * @param contextClassLoader maybe {@code null}
+	 * @param transformerClasses maybe {@code null}
 	 * @return array of passed transformer class name instances
-	 * @throws Exception 
+	 * @throws Exception  by {@link #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)}
+	 * 						and {@link #configureTransformerInstance(IClassTransformer, Properties)}
 	 * @see #instantiateTransformerClass(ClassLoader,
 	 *      ClassTransformerConfiguration)
 	 */
@@ -202,21 +203,19 @@ public class JavassistMojo extends AbstractMojo {
 	 * Instantiate the class passed by {@link ClassTransformerConfiguration}
 	 * configuration object.
 	 * 
-	 * @param contextClassLoader
-	 * @param transformerClass
+	 * @param contextClassLoader maybe {@code null}
+	 * @param transformerClass must not be {@code null}
 	 * @return new instance of passed transformer class name
-	 * @throws ClassNotFoundException
-	 * @throws NullPointerException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws MojoExecutionException
+	 * @throws ClassNotFoundException by {@code transformerClass} {@link Class#forName(String)}.
+	 * @throws InstantiationException by {@code transformerClass} {@link Class#forName(String)}.
+	 * @throws IllegalAccessException by {@code transformerClass} {@link Class#forName(String)}.
+	 * @throws MojoExecutionException if passed {@code transformerClass} is {@code null} or invalid
 	 */
 	protected IClassTransformer instantiateTransformerClass(
 			final ClassLoader contextClassLoader,
 			final ClassTransformerConfiguration transformerClass)
-			throws ClassNotFoundException, NullPointerException,
-			InstantiationException, IllegalAccessException,
-			MojoExecutionException {
+			throws ClassNotFoundException, InstantiationException,
+			IllegalAccessException, MojoExecutionException {
 		if (null == transformerClass || null == transformerClass.getClassName()
 				|| transformerClass.getClassName().trim().isEmpty()) {
 			throw new MojoExecutionException(
@@ -239,11 +238,9 @@ public class JavassistMojo extends AbstractMojo {
 	 * Configure the passed {@link ClassTransformer} instance using the passed
 	 * {@link Properties}.
 	 * 
-	 * @param transformerInstance
-	 *            - maybe <code>null</code>
-	 * @param properties
-	 *            - maybe <code>null</code> or empty
-	 * @throws Exception 
+	 * @param transformerInstance maybe {@code null}
+	 * @param properties maybe {@code null} or empty
+	 * @throws Exception by {@link ClassTransformer#configure(Properties)}
 	 */
 	protected void configureTransformerInstance(
 			final IClassTransformer transformerInstance,

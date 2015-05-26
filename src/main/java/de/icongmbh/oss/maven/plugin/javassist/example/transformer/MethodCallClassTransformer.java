@@ -31,7 +31,6 @@ import de.icongmbh.oss.maven.plugin.javassist.ClassTransformer;
 /**
  * Example of {@link ClassTransformer} implementation.
  * 
- * @author Uwe Barthel
  */
 public class MethodCallClassTransformer extends ClassTransformer {
 
@@ -60,8 +59,8 @@ public class MethodCallClassTransformer extends ClassTransformer {
 	 * my.example.App#doSomthing={ $2="injected value for sec. parameter"; $_ = $proceed($$); }
 	 * </pre>
 	 * 
-	 * @param properties
-	 * @throws Exception
+	 * @param properties maybe {@code null}
+	 * @throws Exception provided by interface
 	 */
 	// TODO: validate input; don't store properties directly (outside
 	// modification)
