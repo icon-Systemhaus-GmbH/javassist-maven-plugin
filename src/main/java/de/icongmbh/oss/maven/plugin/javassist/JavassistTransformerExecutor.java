@@ -179,7 +179,7 @@ public class JavassistTransformerExecutor {
                         applyStamp(candidateClass);
                         candidateClass.writeFile(outputDir);
 			for (CtClass nestedClass : candidateClass.getNestedClasses()) {
-				if (nestedClass.isModified) {
+				if (nestedClass.isModified()) {
 					applyStamp(nestedClass);
 					nestedClass.writeFile(outputDir);
 				}
