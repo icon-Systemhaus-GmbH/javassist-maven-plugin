@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -17,14 +17,6 @@
   <description>A maven plugin based on Javassist to manipulate bytecode of project classes at post-compile time.</description>
   <url>http://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin</url>
   <inceptionYear>2013</inceptionYear>
-
-  <scm>
-    <connection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</connection>
-    <url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</url>
-    <developerConnection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
   <licenses>
     <license>
       <name>Apache 2</name>
@@ -49,7 +41,6 @@
       </roles>
     </developer>
   </developers>
-
   <contributors>
     <contributor>
       <name>Stéphane NICOLAS</name>
@@ -60,16 +51,20 @@
     </contributor>
   </contributors>
 
-  <ciManagement>
-    <system>travis</system>
-    <url>https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin/</url>
-  </ciManagement>
-
+  <scm>
+    <connection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</connection>
+    <url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</url>
+    <developerConnection>scm:git:ssh://git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
   <issueManagement>
     <system>Github Issue Tracker</system>
     <url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin/issues</url>
   </issueManagement>
-
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/icon-Systemhaus-GmbH/javassist-maven-plugin/</url>
+  </ciManagement>
   <distributionManagement>
     <!-- http://khuxtable.github.io/wagon-gitsite/usage.html -->
     <!-- add to settings.xml: <server> <id>github-project-site</id> <username>git</username>
@@ -87,10 +82,10 @@
     <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
     <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
     <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-    <maven-plugin-api.version>3.5.0</maven-plugin-api.version>
+    <maven-plugin-api.version>3.3.9</maven-plugin-api.version>
     <maven-plugin-annotations.version>3.5</maven-plugin-annotations.version>
-    <maven-core.version>3.5.0</maven-core.version>
-    <maven-model-builder.version>3.5.0</maven-model-builder.version>
+    <maven-core.version>3.3.9</maven-core.version>
+    <maven-model-builder.version>3.3.9</maven-model-builder.version>
     <maven-site-plugin.version>3.6</maven-site-plugin.version>
     <doxia-module-markdown.version>1.7</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
@@ -111,11 +106,13 @@
     <junit.version>4.12</junit.version>
     <easymock.version>3.4</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
-    <maven-compat.version>3.5.0</maven-compat.version>
+    <maven-compat.version>3.3.9</maven-compat.version>
     <plexus-interpolation.version>1.24</plexus-interpolation.version>
-    <maven-artifact.version>3.5.0</maven-artifact.version>
+    <maven-artifact.version>3.3.9</maven-artifact.version>
 
     <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+    <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
+    <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -253,7 +250,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-
   <dependencies>
 
     <dependency>
@@ -401,9 +397,7 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site-plugin.version}</version>
           <dependencies>
-            <dependency>
-              <!-- | allows markdown syntax for site generation. To use it place
-              files below | src/site/markdown/[filename].md -->
+            <dependency><!-- | allows markdown syntax for site generation. To use it place files below | src/site/markdown/[filename].md -->
               <groupId>org.apache.maven.doxia</groupId>
               <artifactId>doxia-module-markdown</artifactId>
               <version>${doxia-module-markdown.version}</version>
@@ -414,6 +408,20 @@
               <version>${wagon-gitsite.version}</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <artifactId>maven-invoker-plugin</artifactId>
+          <version>${maven-invoker-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.jeluard</groupId>
+          <artifactId>plantuml-maven-plugin</artifactId>
+          <version>${plantuml-maven-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -457,11 +465,13 @@
       </plugin>
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <version>1.8</version>
         <configuration>
           <projectsDirectory>src/it/resources</projectsDirectory>
           <localRepositoryPath>target/local-repo</localRepositoryPath>
           <settingsFile>src/it/resources/settings.xml</settingsFile>
+          <cloneProjectsTo>target/it/projects/</cloneProjectsTo>
+          <cloneClean>true</cloneClean>
+          <showErrors>true</showErrors>
         </configuration>
         <executions>
           <execution>
@@ -476,7 +486,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
         <configuration>
           <author>false</author>
           <breakiterator>true</breakiterator>
@@ -504,7 +513,6 @@
       <plugin>
         <groupId>com.github.jeluard</groupId>
         <artifactId>plantuml-maven-plugin</artifactId>
-        <version>1.1</version>
         <configuration>
           <sourceFiles>
             <directory>${basedir}/src/main/plantuml</directory>
@@ -524,23 +532,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
-        <reportSets>
-          <reportSet>
-            <id>aggregate</id><!-- aggregate reportSet, for pom with modules -->
-            <inherited>false</inherited><!-- don't run aggregate in child modules -->
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>

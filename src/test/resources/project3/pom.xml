@@ -5,7 +5,7 @@
 
   <groupId>de.icongmbh.oss.maven.plugins</groupId>
   <artifactId>javassist-maven-plugin-test-project2</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>@project.version@</version>
   <packaging>maven-plugin</packaging>
 
   <properties>
