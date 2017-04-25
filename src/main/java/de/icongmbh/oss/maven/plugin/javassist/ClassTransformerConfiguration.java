@@ -25,25 +25,26 @@ import org.apache.maven.plugins.annotations.Parameter;
  * @author Uwe Barthel
  */
 public class ClassTransformerConfiguration {
-	@Parameter(property = "className", required = true)
-	private String className;
-	
-	@Parameter(property = "properties", required = false)
-	private Properties properties;
 
-	public String getClassName() {
-		return className;
-	}
+    @Parameter(property = "className", required = true)
+    private String className;
 
-	public void setClassName(String className) {
-		this.className = className;
-	}
+    @Parameter(property = "properties", required = false)
+    private Properties properties;
 
-	public Properties getProperties() {
-		return properties;
-	}
+    public String getClassName() {
+        return className;
+    }
 
-	public void setProperties(Properties properties) {
-		this.properties = properties;
-	}
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
 }

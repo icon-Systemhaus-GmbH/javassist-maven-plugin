@@ -21,16 +21,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javassist.build.IClassTransformer;
+
 /**
  * Base class for class transformation logic.
+ *
  * @author Daniel Rochetti
  */
 public abstract class ClassTransformer implements IClassTransformer {
-    
+
     private static Logger logger = LoggerFactory.getLogger(ClassTransformer.class);
 
     /**
-     * <p>Configure this instance by passing {@link Properties}.</p>
+     * <p>
+     * Configure this instance by passing {@link Properties}.
+     * </p>
+     *
      * @param properties maybe {@code null} or empty
      * @throws Exception if configuration failed.
      */
@@ -41,6 +46,5 @@ public abstract class ClassTransformer implements IClassTransformer {
     protected static Logger getLogger() {
         return logger;
     }
-    
 
 }

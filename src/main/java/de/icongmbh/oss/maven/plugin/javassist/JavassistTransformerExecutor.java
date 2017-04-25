@@ -41,118 +41,128 @@ import javassist.bytecode.ClassFile;
 /**
  * Executer to perform the transformation by a list of {@link ClassTransformer}
  * instances.
- * 
+ *
  */
 public class JavassistTransformerExecutor {
 
     private static final String STAMP_FIELD_NAME = "__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__";
 
-	private IClassTransformer[] transformerInstances;
-	private String inputDirectory;
-	private String outputDirectory;
+    private IClassTransformer[] transformerInstances;
+    private String inputDirectory;
+    private String outputDirectory;
 
     private static Logger logger = LoggerFactory.getLogger(JavassistTransformerExecutor.class);
 
-	public JavassistTransformerExecutor() {
-	}
+    public JavassistTransformerExecutor() {
+    }
 
-	/**
-	 * Configure class transformer instances for use with this executor
-	 * 
-	 * @param transformerInstances must not be {@code null}
-	 */
-	public void setTransformerClasses(
-			final IClassTransformer... transformerInstances) {
-		this.transformerInstances = transformerInstances;
-	}
-
-	public void setOutputDirectory(final String outputDirectory) {
-		this.outputDirectory = outputDirectory;
-	}
-
-	protected String getOutputDirectory() {
-		return outputDirectory;
-	}
-
-	public void setInputDirectory(final String inputDirectory) {
-		this.inputDirectory = inputDirectory;
-	}
-
-	protected String getInputDirectory() {
-		return inputDirectory;
-	}
-
-	public void execute() throws Exception {
-		for (final IClassTransformer transformer : transformerInstances) {
-			execute(transformer);
-		}
-	}
-
-	protected void execute(final IClassTransformer transformer) {
-		if (null == transformer) {
-			return;
-		}
-		transform(transformer, getInputDirectory(), getOutputDirectory());
-	}
-	
     /**
-     * Search for class files on the passed directory name ({@link #iterateClassnames(String)})
-     * and apply transformation to each one ({@link #transform(IClassTransformer, String, String, Iterator)}).
+     * Configure class transformer instances for use with this executor
+     *
+     * @param transformerInstances must not be {@code null}
+     */
+    public void setTransformerClasses(
+            final IClassTransformer... transformerInstances) {
+        this.transformerInstances = transformerInstances;
+    }
+
+    public void setOutputDirectory(final String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
+
+    protected String getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setInputDirectory(final String inputDirectory) {
+        this.inputDirectory = inputDirectory;
+    }
+
+    protected String getInputDirectory() {
+        return inputDirectory;
+    }
+
+    public void execute() throws Exception {
+        for (final IClassTransformer transformer : transformerInstances) {
+            execute(transformer);
+        }
+    }
+
+    protected void execute(final IClassTransformer transformer) {
+        if (null == transformer) {
+            return;
+        }
+        transform(transformer, getInputDirectory(), getOutputDirectory());
+    }
+
+    /**
+     * Search for class files on the passed directory name
+     * ({@link #iterateClassnames(String)}) and apply transformation to each one
+     * ({@link #transform(IClassTransformer, String, String, Iterator)}).
      * <p>
      * <strong>Limitation:</strong> do not search inside .jar files yet.
      * </p>
+     *
      * @param transformer the transformer that will apply transformations.
      * @param dir root directory -input and output directory are the same.
      * @see #iterateClassnames(String)
      * @see #transform(IClassTransformer, String, String, Iterator)
-     * 
+     *
      */
     public final void transform(final IClassTransformer transformer, final String dir) {
-        if( null == dir || dir.trim().isEmpty()) {
+        if (null == dir || dir.trim().isEmpty()) {
             return;
         }
-        transform(transformer, dir,dir,iterateClassnames(dir));
+        transform(transformer, dir, dir, iterateClassnames(dir));
     }
 
     /**
-     * Search for class files on the passed input directory ({@link #iterateClassnames(String)})
-     * and apply transformation to each one ({@link #transform(IClassTransformer, String, String, Iterator)}).
+     * Search for class files on the passed input directory
+     * ({@link #iterateClassnames(String)}) and apply transformation to each one
+     * ({@link #transform(IClassTransformer, String, String, Iterator)}).
      * <p>
      * <strong>Limitation:</strong> do not search inside .jar files yet.
      * </p>
+     *
      * @param transformer the transformer that will apply transformations.
-     * @param inputDir root directory - maybe {@code null} - if {@code null} or empty nothing will be transformed. 
-     * @param outputDir maybe {@code null} - if {@code null} or empty the {@code inputDir} will be used.
+     * @param inputDir root directory - maybe {@code null} - if {@code null} or
+     * empty nothing will be transformed.
+     * @param outputDir maybe {@code null} - if {@code null} or empty the
+     * {@code inputDir} will be used.
      * @see #iterateClassnames(String)
      * @see #transform(IClassTransformer, String, String, Iterator)
      */
     public void transform(final IClassTransformer transformer, final String inputDir, final String outputDir) {
-        if( null == inputDir || inputDir.trim().isEmpty()) {
+        if (null == inputDir || inputDir.trim().isEmpty()) {
             return;
         }
-        final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir:inputDir;
-        transform(transformer, inputDir, outDirectory,iterateClassnames(inputDir));
+        final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir : inputDir;
+        transform(transformer, inputDir, outDirectory, iterateClassnames(inputDir));
     }
 
     /**
      * Transform each class passed via {@link Iterator} of class names.
      * <p>
-     * Use the passed {@code className} iterator, load each one as {@link CtClass}, filter
-     * the valid candidates and apply transformation to each one.
+     * Use the passed {@code className} iterator, load each one as
+     * {@link CtClass}, filter the valid candidates and apply transformation to
+     * each one.
      * </p>
      * <p>
      * <strong>Limitation:</strong> do not search inside .jar files yet.
      * </p>
+     *
      * @param transformer must not be {@code null}
-     * @param inputDir root directory - maybe {@code null} - if {@code null} or empty nothing will be transformed 
+     * @param inputDir root directory - maybe {@code null} - if {@code null} or
+     * empty nothing will be transformed
      * @param outputDir must be not {@code null}
-     * @param classNames maybe {@code null} - if {@code null} or empty nothing will be transformed
+     * @param classNames maybe {@code null} - if {@code null} or empty nothing
+     * will be transformed
      * @see #initializeClass(CtClass)
      * @see IClassTransformer#shouldTransform(CtClass)
      * @see IClassTransformer#applyTransformations(CtClass)
      */
-    public final void transform(IClassTransformer transformer, final String inputDir,final String outputDir, final Iterator<String> classNames) {
-        if( null == classNames || !classNames.hasNext()) {
+    public final void transform(IClassTransformer transformer, final String inputDir, final String outputDir, final Iterator<String> classNames) {
+        if (null == classNames || !classNames.hasNext()) {
             return;
         }
         try {
@@ -166,7 +176,7 @@ public class JavassistTransformerExecutor {
             int i = 0;
             while (classNames.hasNext()) {
                 final String className = classNames.next();
-                if( null == className) {
+                if (null == className) {
                     continue;
                 }
                 try {
@@ -174,31 +184,31 @@ public class JavassistTransformerExecutor {
                     classPool.importPackage(className);
                     final CtClass candidateClass = classPool.get(className);
                     initializeClass(candidateClass);
-                    if ( !hasStamp(candidateClass) && transformer.shouldTransform(candidateClass) ) {
-                    	transformer.applyTransformations(candidateClass);
+                    if (!hasStamp(candidateClass) && transformer.shouldTransform(candidateClass)) {
+                        transformer.applyTransformations(candidateClass);
                         applyStamp(candidateClass);
                         candidateClass.writeFile(outputDir);
                         logger.debug("Class {} instrumented by {}", className, getClass().getName());
                         ++i;
                     }
                 } catch (final NotFoundException e) {
-                    logger.warn("Class {} could not be resolved due to dependencies not found on " +
-                            "current classpath (usually your class depends on \"provided\" scoped dependencies).",
+                    logger.warn("Class {} could not be resolved due to dependencies not found on "
+                            + "current classpath (usually your class depends on \"provided\" scoped dependencies).",
                             className);
                     continue;
-                } catch ( final Exception ex) { // EOFException ...
-                    logger.error("Class {} could not be instrumented due to initialize FAILED.",className, ex);
+                } catch (final Exception ex) { // EOFException ...
+                    logger.error("Class {} could not be instrumented due to initialize FAILED.", className, ex);
                     continue;
                 }
             }
-            logger.info("#{} classes instrumented by {}",i,getClass().getName());
+            logger.info("#{} classes instrumented by {}", i, getClass().getName());
         } catch (final Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
     protected Iterator<String> iterateClassnames(final String dir) {
-        final String[] extensions = { ".class" };
+        final String[] extensions = {".class"};
         final File directory = new File(dir);
         IOFileFilter fileFilter = new SuffixFileFilter(extensions);
         final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;
@@ -208,25 +218,29 @@ public class JavassistTransformerExecutor {
     /**
      * Apply a "stamp" to a class to indicate it has been modified.
      * <p>
-     * By default, this method uses a boolean field named 
-     * {@value #STAMP_FIELD_NAME} as the stamp. 
-     * Any class overriding this method should also override {@link #hasStamp(CtClass)}.
+     * By default, this method uses a boolean field named
+     * {@value #STAMP_FIELD_NAME} as the stamp. Any class overriding this method
+     * should also override {@link #hasStamp(CtClass)}.
      * </p>
+     *
      * @param candidateClass the class to mark/stamp.
-     * @throws CannotCompileException by {@link CtClass#addField(CtField, CtField.Initializer)}
+     * @throws CannotCompileException by
+     * {@link CtClass#addField(CtField, CtField.Initializer)}
      * @see #createStampField(CtClass)
      * @see CtClass#addField(CtField, CtField.Initializer)
      */
     protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
-        candidateClass.addField(createStampField(candidateClass),Initializer.constant(true));
+        candidateClass.addField(createStampField(candidateClass), Initializer.constant(true));
     }
 
     /**
      * Remove a "stamp" from a class if the "stamp" field is available.
      * <p>
-     * By default, this method removes a boolean field named {@value #STAMP_FIELD_NAME}. 
-     * Any class overriding this method should also override {@link #hasStamp(CtClass)}.
+     * By default, this method removes a boolean field named
+     * {@value #STAMP_FIELD_NAME}. Any class overriding this method should also
+     * override {@link #hasStamp(CtClass)}.
      * </p>
+     *
      * @param candidateClass the class to remove the mark/stamp from.
      * @throws CannotCompileException by {@link CtClass#removeField(CtField)}
      * @see #createStampField(CtClass)
@@ -243,40 +257,42 @@ public class JavassistTransformerExecutor {
     /**
      * Indicates whether a class holds a stamp or not.
      * <p>
-     * By default, this method uses a boolean field named 
-     * {@value #STAMP_FIELD_NAME} as the stamp. 
-     * Any class overriding this method should also override {@link #applyStamp(CtClass)}.
+     * By default, this method uses a boolean field named
+     * {@value #STAMP_FIELD_NAME} as the stamp. Any class overriding this method
+     * should also override {@link #applyStamp(CtClass)}.
      * </p>
+     *
      * @param candidateClass the class to check must not be {@code null}.
-     * @return {@code true} if the class owns the stamp, otherwise {@code false}.
+     * @return {@code true} if the class owns the stamp, otherwise
+     * {@code false}.
      * @see #createStampFieldName()
      * @see CtClass#getDeclaredField(String)
      */
     protected boolean hasStamp(CtClass candidateClass) {
-    	boolean hasStamp = false;
+        boolean hasStamp = false;
         try {
             hasStamp = null != candidateClass.getDeclaredField(createStampFieldName());
         } catch (NotFoundException e) {
             hasStamp = false;
         }
-        if( logger.isDebugEnabled() ) {
-            logger.debug("Stamp {}{} found in class {}", createStampFieldName(),(hasStamp?"":" NOT"),candidateClass.getName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Stamp {}{} found in class {}", createStampFieldName(), (hasStamp ? "" : " NOT"), candidateClass.getName());
         }
         return hasStamp;
     }
-    
+
     private String createStampFieldName() {
-        return STAMP_FIELD_NAME+getClass().getName().replaceAll("\\W", "_");
+        return STAMP_FIELD_NAME + getClass().getName().replaceAll("\\W", "_");
     }
 
     private CtField createStampField(CtClass candidateClass) throws CannotCompileException {
         int stampModifiers = AccessFlag.STATIC | AccessFlag.FINAL;
         if (!candidateClass.isInterface()) {
-          stampModifiers |= AccessFlag.PRIVATE;
+            stampModifiers |= AccessFlag.PRIVATE;
         } else {
-          stampModifiers |= AccessFlag.PUBLIC;
+            stampModifiers |= AccessFlag.PUBLIC;
         }
-        final CtField stampField = new CtField(CtClass.booleanType, createStampFieldName(),candidateClass);
+        final CtField stampField = new CtField(CtClass.booleanType, createStampFieldName(), candidateClass);
         stampField.setModifiers(stampModifiers);
         return stampField;
     }
@@ -291,10 +307,10 @@ public class JavassistTransformerExecutor {
         if (!logger.isDebugEnabled()) {
             return;
         }
-        logger.debug(" - class: {}",classFile.getName());
+        logger.debug(" - class: {}", classFile.getName());
         logger.debug(" -- Java version: {}.{}", classFile.getMajorVersion(), classFile.getMinorVersion());
         logger.debug(" -- interface: {} abstract: {} final: {}", classFile.isInterface(), classFile.isAbstract(), classFile.isFinal());
-        logger.debug(" -- extends class: {}",classFile.getSuperclass());
+        logger.debug(" -- extends class: {}", classFile.getSuperclass());
         logger.debug(" -- implements interfaces: {}", Arrays.deepToString(classFile.getInterfaces()));
     }
 

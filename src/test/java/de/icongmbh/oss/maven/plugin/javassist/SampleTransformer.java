@@ -8,10 +8,10 @@ public class SampleTransformer extends ClassTransformer {
     @Override
     public void applyTransformations(CtClass classToTransform) throws JavassistBuildException {
     }
-    
+
     @Override
     public boolean shouldTransform(CtClass ctClass) throws JavassistBuildException {
-    	return false;
+        return false;
     }
 
 }

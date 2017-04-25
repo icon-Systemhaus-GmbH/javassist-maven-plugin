@@ -42,8 +42,9 @@ import org.slf4j.LoggerFactory;
  * Maven plugin that will apply <a
  * href="http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/">Javassist</a>
  * class transformations on compiled classes (bytecode instrumentation).
- * <p>Example plugin configuration :</p>
- * 
+ * <p>
+ * Example plugin configuration :</p>
+ *
  * <pre>
  *   &lt;configuration&gt;
  *       &lt;skip&gt;true&lt;/skip&gt;
@@ -57,7 +58,7 @@ import org.slf4j.LoggerFactory;
  *       &lt;/transformerClasses&gt;
  *   &lt;/configuration&gt;
  * </pre>
- * 
+ *
  * @author Daniel Rochetti
  * @author barthel
  */
@@ -68,214 +69,230 @@ public class JavassistMojo extends AbstractMojo {
 
     private static final Class<IClassTransformer> TRANSFORMER_TYPE = IClassTransformer.class;
 
-	@Parameter(defaultValue = "${project}", property = "javassist.project", required = true, readonly = true)
-	private MavenProject project;
+    @Parameter(defaultValue = "${project}", property = "javassist.project", required = true, readonly = true)
+    private MavenProject project;
 
-	/**Skips all processing performed by this goal.*/
-	@Parameter(defaultValue = "false", property = "javassist.skip", required = false)
-	private boolean skip;
+    /**
+     * Skips all processing performed by this goal.
+     */
+    @Parameter(defaultValue = "false", property = "javassist.skip", required = false)
+    private boolean skip;
 
-	@Parameter(defaultValue = "true", property = "javassist.includeTestClasses", required = true)
-	/**Whether or not to include test classes to be processed byt declared transformers.*/
-	private Boolean includeTestClasses;
+    @Parameter(defaultValue = "true", property = "javassist.includeTestClasses", required = true)
+    /**
+     * Whether or not to include test classes to be processed byt declared
+     * transformers.
+     */
+    private Boolean includeTestClasses;
 
-	@Parameter(property = "javassist.transformerClasses", required = true)
-	private ClassTransformerConfiguration[] transformerClasses;
+    @Parameter(property = "javassist.transformerClasses", required = true)
+    private ClassTransformerConfiguration[] transformerClasses;
 
-	/** Allows to customize the build directory of the project, used for both finding classes to transform and outputing them once transformed. 
-	 * By default, equals to maven's project output directory. Path must be either absolute or relative to project base dir.*/
-	@Parameter(property = "javassist.buildDir", required = false)
-	private String buildDir;
+    /**
+     * Allows to customize the build directory of the project, used for both
+     * finding classes to transform and outputing them once transformed. By
+     * default, equals to maven's project output directory. Path must be either
+     * absolute or relative to project base dir.
+     */
+    @Parameter(property = "javassist.buildDir", required = false)
+    private String buildDir;
 
-	/** Allows to customize the build directory of the tests of the project, used for both finding classes to transform and outputing them once transformed. 
-	 * By default, equals to maven's project test output directory. Path must be either absolute or relative to project base dir.*/
-	@Parameter(property = "javassist.testBuildDir", required = false)
-	private String testBuildDir;
+    /**
+     * Allows to customize the build directory of the tests of the project, used
+     * for both finding classes to transform and outputing them once
+     * transformed. By default, equals to maven's project test output directory.
+     * Path must be either absolute or relative to project base dir.
+     */
+    @Parameter(property = "javassist.testBuildDir", required = false)
+    private String testBuildDir;
 
-	public void execute() throws MojoExecutionException {
-		if( skip ) {
-			logger.info("Skipping executing.");
-			return;
-		}
+    public void execute() throws MojoExecutionException {
+        if (skip) {
+            logger.info("Skipping executing.");
+            return;
+        }
 
-		final ClassLoader originalContextClassLoader =
-			currentThread().getContextClassLoader();
+        final ClassLoader originalContextClassLoader
+                = currentThread().getContextClassLoader();
 
-		try {
-			final List<URL> classPath = new ArrayList<URL>();
+        try {
+            final List<URL> classPath = new ArrayList<URL>();
 
-			for (final String runtimeResource : project
-				.getRuntimeClasspathElements()) {
-				classPath.add(resolveUrl(runtimeResource));
-			}
+            for (final String runtimeResource : project
+                    .getRuntimeClasspathElements()) {
+                classPath.add(resolveUrl(runtimeResource));
+            }
 
-			final String inputDirectory = buildDir == null ?
-				project.getBuild().getOutputDirectory() : computeDir(buildDir);
+            final String inputDirectory = buildDir == null
+                    ? project.getBuild().getOutputDirectory() : computeDir(buildDir);
 
-			classPath.add(resolveUrl(inputDirectory));
+            classPath.add(resolveUrl(inputDirectory));
 
-			loadAdditionalClassPath(classPath);
+            loadAdditionalClassPath(classPath);
 
-			final JavassistTransformerExecutor executor =
-				new JavassistTransformerExecutor();
+            final JavassistTransformerExecutor executor
+                    = new JavassistTransformerExecutor();
 
-			String testInputDirectory =
-				testBuildDir == null ? project.getBuild()
-					.getTestOutputDirectory() : computeDir(testBuildDir);
+            String testInputDirectory
+                    = testBuildDir == null ? project.getBuild()
+                                    .getTestOutputDirectory() : computeDir(testBuildDir);
 
-			executor.setTransformerClasses(instantiateTransformerClasses(
-				currentThread().getContextClassLoader(), transformerClasses));
-			executor.setInputDirectory(inputDirectory);
-			executor.setOutputDirectory(inputDirectory);
-			executor.execute();
+            executor.setTransformerClasses(instantiateTransformerClasses(
+                    currentThread().getContextClassLoader(), transformerClasses));
+            executor.setInputDirectory(inputDirectory);
+            executor.setOutputDirectory(inputDirectory);
+            executor.execute();
 
-			if (includeTestClasses) {
-				classPath.add(resolveUrl(testInputDirectory));
-				executor.setInputDirectory(testInputDirectory);
-				executor.setOutputDirectory(testInputDirectory);
-				executor.execute();
-			}
+            if (includeTestClasses) {
+                classPath.add(resolveUrl(testInputDirectory));
+                executor.setInputDirectory(testInputDirectory);
+                executor.setOutputDirectory(testInputDirectory);
+                executor.execute();
+            }
 
-		}
-		catch (final Exception e) {
-			getLog().error(e.getMessage(), e);
-			throw new MojoExecutionException(e.getMessage(), e);
-		}
-		finally {
-			currentThread().setContextClassLoader(originalContextClassLoader);
-		}
-	}
+        } catch (final Exception e) {
+            getLog().error(e.getMessage(), e);
+            throw new MojoExecutionException(e.getMessage(), e);
+        } finally {
+            currentThread().setContextClassLoader(originalContextClassLoader);
+        }
+    }
 
-	private void loadAdditionalClassPath(final List<URL> classPath) {
-		if (classPath.isEmpty()) {
-			return;
-		}
-		final ClassLoader contextClassLoader =
-			currentThread().getContextClassLoader();
+    private void loadAdditionalClassPath(final List<URL> classPath) {
+        if (classPath.isEmpty()) {
+            return;
+        }
+        final ClassLoader contextClassLoader
+                = currentThread().getContextClassLoader();
 
-		final URLClassLoader pluginClassLoader =
-			URLClassLoader.newInstance(
-				classPath.toArray(new URL[classPath.size()]),
-				contextClassLoader);
+        final URLClassLoader pluginClassLoader
+                = URLClassLoader.newInstance(
+                        classPath.toArray(new URL[classPath.size()]),
+                        contextClassLoader);
 
-		currentThread().setContextClassLoader(pluginClassLoader);
-	}
+        currentThread().setContextClassLoader(pluginClassLoader);
+    }
 
     private String computeDir(String dir) {
-        File dirFile = new File( dir );
-        if( dirFile.isAbsolute() ) {
+        File dirFile = new File(dir);
+        if (dirFile.isAbsolute()) {
             return dirFile.getAbsolutePath();
-        } else { 
+        } else {
             return new File(project.getBasedir(), buildDir).getAbsolutePath();
         }
     }
 
-	/**
-	 * @param contextClassLoader maybe {@code null}
-	 * @param transformerClasses maybe {@code null}
-	 * @return array of passed transformer class name instances
-	 * @throws Exception  by {@link #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)}
-	 * 						and {@link #configureTransformerInstance(IClassTransformer, Properties)}
-	 * @see #instantiateTransformerClass(ClassLoader,
-	 *      ClassTransformerConfiguration)
-	 */
-	protected IClassTransformer[] instantiateTransformerClasses(
-			final ClassLoader contextClassLoader,
-			final ClassTransformerConfiguration... transformerClasses)
-			throws Exception {
-		if (null == transformerClasses || transformerClasses.length <= 0) {
-			throw new MojoExecutionException(
-					"Invalid transformer classes passed");
-		}
-		final List<IClassTransformer> transformerInstances = new LinkedList<IClassTransformer>();
-		for (ClassTransformerConfiguration transformerClass : transformerClasses) {
-			final IClassTransformer transformerInstance = instantiateTransformerClass(
-					contextClassLoader, transformerClass);
-			configureTransformerInstance(transformerInstance,
-					transformerClass.getProperties());
-			transformerInstances.add(transformerInstance);
-		}
-		return transformerInstances
-				.toArray(new IClassTransformer[transformerInstances.size()]);
-	}
+    /**
+     * @param contextClassLoader maybe {@code null}
+     * @param transformerClasses maybe {@code null}
+     * @return array of passed transformer class name instances
+     * @throws Exception by
+     * {@link #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)}
+     * and {@link #configureTransformerInstance(IClassTransformer, Properties)}
+     * @see #instantiateTransformerClass(ClassLoader,
+     * ClassTransformerConfiguration)
+     */
+    protected IClassTransformer[] instantiateTransformerClasses(
+            final ClassLoader contextClassLoader,
+            final ClassTransformerConfiguration... transformerClasses)
+            throws Exception {
+        if (null == transformerClasses || transformerClasses.length <= 0) {
+            throw new MojoExecutionException(
+                    "Invalid transformer classes passed");
+        }
+        final List<IClassTransformer> transformerInstances = new LinkedList<IClassTransformer>();
+        for (ClassTransformerConfiguration transformerClass : transformerClasses) {
+            final IClassTransformer transformerInstance = instantiateTransformerClass(
+                    contextClassLoader, transformerClass);
+            configureTransformerInstance(transformerInstance,
+                    transformerClass.getProperties());
+            transformerInstances.add(transformerInstance);
+        }
+        return transformerInstances
+                .toArray(new IClassTransformer[transformerInstances.size()]);
+    }
 
-	/**
-	 * Instantiate the class passed by {@link ClassTransformerConfiguration}
-	 * configuration object.
-	 * 
-	 * @param contextClassLoader maybe {@code null}
-	 * @param transformerClass must not be {@code null}
-	 * @return new instance of passed transformer class name
-	 * @throws ClassNotFoundException by {@code transformerClass} {@link Class#forName(String)}.
-	 * @throws InstantiationException by {@code transformerClass} {@link Class#forName(String)}.
-	 * @throws IllegalAccessException by {@code transformerClass} {@link Class#forName(String)}.
-	 * @throws MojoExecutionException if passed {@code transformerClass} is {@code null} or invalid
-	 */
-	protected IClassTransformer instantiateTransformerClass(
-			final ClassLoader contextClassLoader,
-			final ClassTransformerConfiguration transformerClass)
-			throws ClassNotFoundException, InstantiationException,
-			IllegalAccessException, MojoExecutionException {
-		if (null == transformerClass || null == transformerClass.getClassName()
-				|| transformerClass.getClassName().trim().isEmpty()) {
-			throw new MojoExecutionException(
-					"Invalid transformer class name passed");
-		}
-		final Class<?> transformerClassInstance = Class.forName(
-				transformerClass.getClassName().trim(), true,
-				contextClassLoader);
-		if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstance)) {
-			return TRANSFORMER_TYPE
-					.cast(transformerClassInstance.newInstance());
-		} else {
-			throw new MojoExecutionException(
-					"Transformer class must inherit from "
-							+ TRANSFORMER_TYPE.getName());
-		}
-	}
+    /**
+     * Instantiate the class passed by {@link ClassTransformerConfiguration}
+     * configuration object.
+     *
+     * @param contextClassLoader maybe {@code null}
+     * @param transformerClass must not be {@code null}
+     * @return new instance of passed transformer class name
+     * @throws ClassNotFoundException by {@code transformerClass}
+     * {@link Class#forName(String)}.
+     * @throws InstantiationException by {@code transformerClass}
+     * {@link Class#forName(String)}.
+     * @throws IllegalAccessException by {@code transformerClass}
+     * {@link Class#forName(String)}.
+     * @throws MojoExecutionException if passed {@code transformerClass} is
+     * {@code null} or invalid
+     */
+    protected IClassTransformer instantiateTransformerClass(
+            final ClassLoader contextClassLoader,
+            final ClassTransformerConfiguration transformerClass)
+            throws ClassNotFoundException, InstantiationException,
+            IllegalAccessException, MojoExecutionException {
+        if (null == transformerClass || null == transformerClass.getClassName()
+                || transformerClass.getClassName().trim().isEmpty()) {
+            throw new MojoExecutionException(
+                    "Invalid transformer class name passed");
+        }
+        final Class<?> transformerClassInstance = Class.forName(
+                transformerClass.getClassName().trim(), true,
+                contextClassLoader);
+        if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstance)) {
+            return TRANSFORMER_TYPE
+                    .cast(transformerClassInstance.newInstance());
+        } else {
+            throw new MojoExecutionException(
+                    "Transformer class must inherit from "
+                    + TRANSFORMER_TYPE.getName());
+        }
+    }
 
-	/**
-	 * Configure the passed {@link ClassTransformer} instance using the passed
-	 * {@link Properties}.
-	 * 
-	 * @param transformerInstance maybe {@code null}
-	 * @param properties maybe {@code null} or empty
-	 * @throws Exception by {@link ClassTransformer#configure(Properties)}
-	 */
-	protected void configureTransformerInstance(
-			final IClassTransformer transformerInstance,
-			final Properties properties) throws Exception {
-		if (null == transformerInstance || !(transformerInstance instanceof ClassTransformer)) {
-			return;
-		}
-		((ClassTransformer)transformerInstance).configure(properties);
-	}
+    /**
+     * Configure the passed {@link ClassTransformer} instance using the passed
+     * {@link Properties}.
+     *
+     * @param transformerInstance maybe {@code null}
+     * @param properties maybe {@code null} or empty
+     * @throws Exception by {@link ClassTransformer#configure(Properties)}
+     */
+    protected void configureTransformerInstance(
+            final IClassTransformer transformerInstance,
+            final Properties properties) throws Exception {
+        if (null == transformerInstance || !(transformerInstance instanceof ClassTransformer)) {
+            return;
+        }
+        ((ClassTransformer) transformerInstance).configure(properties);
+    }
 
-	private URL resolveUrl(final String resource) {
-		try {
-			return new File(resource).toURI().toURL();
-		} catch (final MalformedURLException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-	}
-	
-	public boolean isSkip() {
+    private URL resolveUrl(final String resource) {
+        try {
+            return new File(resource).toURI().toURL();
+        } catch (final MalformedURLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    public boolean isSkip() {
         return skip;
     }
-	
-	public Boolean getIncludeTestClasses() {
+
+    public Boolean getIncludeTestClasses() {
         return includeTestClasses;
     }
-	
-	public ClassTransformerConfiguration[] getTransformerClasses() {
+
+    public ClassTransformerConfiguration[] getTransformerClasses() {
         return transformerClasses;
     }
-	
-	public String getBuildDir() {
+
+    public String getBuildDir() {
         return buildDir;
     }
-	
-	public String getTestBuildDir() {
+
+    public String getTestBuildDir() {
         return testBuildDir;
     }
 
