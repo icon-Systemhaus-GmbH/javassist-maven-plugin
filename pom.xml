@@ -79,13 +79,15 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.compiler.version>1.6</java.compiler.version>
 
+    <maven.version>3.2.5</maven.version>
+
     <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
     <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
     <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-    <maven-plugin-api.version>3.3.9</maven-plugin-api.version>
+    <maven-plugin-api.version>${maven.version}</maven-plugin-api.version>
     <maven-plugin-annotations.version>3.5</maven-plugin-annotations.version>
-    <maven-core.version>3.3.9</maven-core.version>
-    <maven-model-builder.version>3.3.9</maven-model-builder.version>
+    <maven-core.version>${maven.version}</maven-core.version>
+    <maven-model-builder.version>${maven.version}</maven-model-builder.version>
     <maven-site-plugin.version>3.6</maven-site-plugin.version>
     <doxia-module-markdown.version>1.7</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
@@ -106,13 +108,14 @@
     <junit.version>4.12</junit.version>
     <easymock.version>3.4</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
-    <maven-compat.version>3.3.9</maven-compat.version>
+    <maven-compat.version>${maven.version}</maven-compat.version>
     <plexus-interpolation.version>1.24</plexus-interpolation.version>
-    <maven-artifact.version>3.3.9</maven-artifact.version>
+    <maven-artifact.version>${maven.version}</maven-artifact.version>
 
     <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
     <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
     <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
+    <animal-sniffer-maven-plugin.version>1.14</animal-sniffer-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -423,6 +426,11 @@
           <artifactId>plantuml-maven-plugin</artifactId>
           <version>${plantuml-maven-plugin.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>animal-sniffer-maven-plugin</artifactId>
+          <version>${animal-sniffer-maven-plugin.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -530,6 +538,28 @@
           </execution>
         </executions>
       </plugin>
+<!--
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>animal-sniffer-maven-plugin</artifactId>
+        <configuration>
+          <signature>
+            <groupId>org.codehaus.mojo.signature</groupId>
+            <artifactId>java16</artifactId>
+            <version>1.1</version>
+          </signature>
+        </configuration>
+        <executions>
+          <execution>
+            <id>check-java-1.6-compat</id>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+-->
     </plugins>
   </build>
 </project>
