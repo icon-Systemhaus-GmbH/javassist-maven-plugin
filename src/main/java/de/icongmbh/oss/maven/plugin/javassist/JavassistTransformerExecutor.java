@@ -188,6 +188,12 @@ public class JavassistTransformerExecutor {
                         transformer.applyTransformations(candidateClass);
                         applyStamp(candidateClass);
                         candidateClass.writeFile(outputDir);
+			for (CtClass nestedClass : candidateClass.getNestedClasses()) {
+				if (nestedClass.isModified()) {
+					applyStamp(nestedClass);
+					nestedClass.writeFile(outputDir);
+				}
+			}
                         logger.debug("Class {} instrumented by {}", className, getClass().getName());
                         ++i;
                     }
