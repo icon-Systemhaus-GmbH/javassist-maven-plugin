@@ -67,8 +67,7 @@
   </ciManagement>
   <distributionManagement>
     <!-- http://khuxtable.github.io/wagon-gitsite/usage.html -->
-    <!-- add to settings.xml: <server> <id>github-project-site</id> <username>git</username>
-    </server> -->
+    <!-- add to settings.xml: <server> <id>github-project-site</id> <username>git</username></server> -->
     <site>
       <id>github-project-site</id>
       <url>gitsite:git@github.com/icon-Systemhaus-GmbH/javassist-maven-plugin.git</url>
@@ -76,18 +75,25 @@
   </distributionManagement>
 
   <properties>
+    <!-- @see: https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
+    <!-- For later checkstyle maven plugin version use 'google_checks.xml' instead of URL. -->
+    <checkstyle.config.location>https://raw.githubusercontent.com/checkstyle/checkstyle/f0326fd4c85c3779c47013d2800ef6daf28721b1/src/main/resources/google_checks.xml</checkstyle.config.location>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- last versions for use with Java 6 -->
+    <maven.version>3.2.5</maven.version>
+    <maven-checkstyle-plugin.version>2.15</maven-checkstyle-plugin.version>
     <java.compiler.version>1.6</java.compiler.version>
 
-    <maven.version>3.2.5</maven.version>
+    <maven-plugin-api.version>${maven.version}</maven-plugin-api.version>
+    <maven-core.version>${maven.version}</maven-core.version>
+    <maven-model-builder.version>${maven.version}</maven-model-builder.version>
+    <maven-compat.version>${maven.version}</maven-compat.version>
+    <maven-artifact.version>${maven.version}</maven-artifact.version>
 
     <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
     <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
-    <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-    <maven-plugin-api.version>${maven.version}</maven-plugin-api.version>
     <maven-plugin-annotations.version>3.5</maven-plugin-annotations.version>
-    <maven-core.version>${maven.version}</maven-core.version>
-    <maven-model-builder.version>${maven.version}</maven-model-builder.version>
     <maven-site-plugin.version>3.6</maven-site-plugin.version>
     <doxia-module-markdown.version>1.7</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
@@ -97,6 +103,10 @@
     <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+    <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+    <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
+    <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
+    <animal-sniffer-maven-plugin.version>1.14</animal-sniffer-maven-plugin.version>
 
     <commons-io.version>2.5</commons-io.version>
     <slf4j-api.version>1.8.0-alpha1</slf4j-api.version>
@@ -108,19 +118,12 @@
     <junit.version>4.12</junit.version>
     <easymock.version>3.4</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
-    <maven-compat.version>${maven.version}</maven-compat.version>
     <plexus-interpolation.version>1.24</plexus-interpolation.version>
-    <maven-artifact.version>${maven.version}</maven-artifact.version>
 
-    <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
-    <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
-    <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
-    <animal-sniffer-maven-plugin.version>1.14</animal-sniffer-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-plugin-api</artifactId>
@@ -254,7 +257,6 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
-
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
@@ -362,9 +364,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>${maven-checkstyle-plugin.version}</version>
-          <configuration>
-            <configLocation>src/main/checkstyle/checkstyle.xml</configLocation>
-          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -400,7 +404,7 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site-plugin.version}</version>
           <dependencies>
-            <dependency><!-- | allows markdown syntax for site generation. To use it place files below | src/site/markdown/[filename].md -->
+            <dependency><!-- | allows markdown syntax for site generation. -->
               <groupId>org.apache.maven.doxia</groupId>
               <artifactId>doxia-module-markdown</artifactId>
               <version>${doxia-module-markdown.version}</version>
@@ -438,15 +442,36 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <configLocation>${checkstyle.config.location}</configLocation>
+          <consoleOutput>false</consoleOutput>
+          <linkXRef>false</linkXRef>
+          <includeTestResources>false</includeTestResources>
+          <consoleOutput>false</consoleOutput>
+          <logViolationsToConsole>true</logViolationsToConsole>
+          <failOnViolation>true</failOnViolation>
+          <!-- Ignores the import (group) order and creepy HTML paragraph handling. -->
+          <violationIgnore>CustomImportOrder,JavadocParagraph</violationIgnore>
+          <violationSeverity>warning</violationSeverity>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <encoding>${encoding}</encoding>
           <source>${java.compiler.version}</source>
           <target>${java.compiler.version}</target>
+          <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
       <plugin>
@@ -538,28 +563,28 @@
           </execution>
         </executions>
       </plugin>
-<!--
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <configuration>
-          <signature>
+      <!--
+          <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>animal-sniffer-maven-plugin</artifactId>
+          <configuration>
+            <signature>
             <groupId>org.codehaus.mojo.signature</groupId>
             <artifactId>java16</artifactId>
             <version>1.1</version>
-          </signature>
-        </configuration>
-        <executions>
-          <execution>
+            </signature>
+          </configuration>
+          <executions>
+            <execution>
             <id>check-java-1.6-compat</id>
             <phase>test</phase>
             <goals>
               <goal>check</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
--->
+            </execution>
+          </executions>
+          </plugin>
+      -->
     </plugins>
   </build>
 </project>

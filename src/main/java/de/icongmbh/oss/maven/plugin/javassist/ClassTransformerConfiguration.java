@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package de.icongmbh.oss.maven.plugin.javassist;
 
 import java.util.Properties;
@@ -22,29 +23,64 @@ import org.apache.maven.plugins.annotations.Parameter;
 /**
  * Configuration object for {@link ClassTransformer} class.
  *
- * @author Uwe Barthel
+ * <pre>
+ * {@code
+ * 
+ * <transformerClass>
+ *  <className>com.domain.ToStringTransformer</className>
+ *  <properties>
+ *    <property>
+ *      <name>append.value</name>
+ *      <value> and ToStringTransformer</value>
+ *    </property>
+ *  </properties>
+ * </transformerClass>
+ * }
+ * </pre>
+ *
+ * @since 1.1.0
  */
 public class ClassTransformerConfiguration {
 
-    @Parameter(property = "className", required = true)
-    private String className;
+  @Parameter(property = "className", required = true)
+  private String className;
 
-    @Parameter(property = "properties", required = false)
-    private Properties properties;
+  @Parameter(property = "properties", required = false)
+  private Properties properties;
 
-    public String getClassName() {
-        return className;
-    }
+  /**
+   * The transformer implementation full qualified class name.
+   *
+   * @return maybe {@code null}
+   */
+  public String getClassName() {
+    return className;
+  }
 
-    public void setClassName(String className) {
-        this.className = className;
-    }
+  /**
+   * Sets the transformer implementation full qualified class name.
+   *
+   * @param className should not be {@code null}
+   */
+  public void setClassName(final String className) {
+    this.className = className;
+  }
 
-    public Properties getProperties() {
-        return properties;
-    }
+  /**
+   * Optional settings for the transformer class.
+   *
+   * @return never {@code null} but maybe empty.
+   */
+  public Properties getProperties() {
+    return (null == properties) ? new Properties() : this.properties;
+  }
 
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
+  /**
+   * Sets the optional settings for the transformer class.
+   *
+   * @param properties should not be {@code null}
+   */
+  public void setProperties(final Properties properties) {
+    this.properties = (null == properties) ? new Properties() : (Properties)properties.clone();
+  }
 }

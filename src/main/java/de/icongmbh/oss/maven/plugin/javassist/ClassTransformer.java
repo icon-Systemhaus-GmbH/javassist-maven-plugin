@@ -13,38 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package de.icongmbh.oss.maven.plugin.javassist;
 
 import java.util.Properties;
 
+import javassist.build.IClassTransformer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javassist.build.IClassTransformer;
 
 /**
  * Base class for class transformation logic.
  *
- * @author Daniel Rochetti
+ * @since 1.1.0
  */
 public abstract class ClassTransformer implements IClassTransformer {
 
-    private static Logger logger = LoggerFactory.getLogger(ClassTransformer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClassTransformer.class);
 
-    /**
-     * <p>
-     * Configure this instance by passing {@link Properties}.
-     * </p>
-     *
-     * @param properties maybe {@code null} or empty
-     * @throws Exception if configuration failed.
-     */
-    public void configure(final Properties properties) throws Exception {
-        return;
-    }
+  /**
+   * Configure this instance by passing {@link Properties}.
+   *
+   * @param properties maybe {@code null} or empty
+   * @throws Exception if configuration failed.
+   */
+  public void configure(final Properties properties) throws Exception {
+    //
+  }
 
-    protected static Logger getLogger() {
-        return logger;
-    }
+  /**
+   * Returns the logger.
+   * 
+   * @return never {@code null}
+   */
+  protected static Logger getLogger() {
+    return LOGGER;
+  }
 
 }
