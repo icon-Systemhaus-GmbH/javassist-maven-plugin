@@ -106,11 +106,12 @@
     <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
     <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
     <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
-    <animal-sniffer-maven-plugin.version>1.14</animal-sniffer-maven-plugin.version>
+    <animal-sniffer-maven-plugin.version>1.15</animal-sniffer-maven-plugin.version>
 
     <commons-io.version>2.5</commons-io.version>
-    <slf4j-api.version>1.8.0-alpha1</slf4j-api.version>
-    <slf4j-simple.version>1.8.0-alpha1</slf4j-simple.version>
+    <slf4j-api.version>1.7.20</slf4j-api.version>
+    <slf4j-simple.version>1.7.20</slf4j-simple.version>
+    <java16.version>1.1</java16.version>
 
     <javassist.version>3.18.1-GA</javassist.version>
     <javassist-build-plugin-api.version>1.0.0</javassist-build-plugin-api.version>
@@ -201,6 +202,12 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-simple</artifactId>
         <version>${slf4j-simple.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.mojo.signature</groupId>
+        <artifactId>java16</artifactId>
+        <classifier>signature</classifier>
+        <version>${java16.version}</version>
       </dependency>
 
       <dependency>
@@ -354,11 +361,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>${maven-enforcer-plugin.version}</version>
-          <configuration>
-            <rules>
-              <dependencyConvergence/>
-            </rules>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -441,6 +443,43 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <configuration>
+          <rules>
+            <dependencyConvergence/>
+          </rules>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-enforcer-rule</artifactId>
+            <version>${animal-sniffer-maven-plugin.version}</version>
+          </dependency>
+        </dependencies>
+        <!-- Checks the source code complains against Java 6 -->
+        <executions>
+          <execution>
+            <id>enforce-java6-signatures</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <checkSignatureRule implementation="org.codehaus.mojo.animal_sniffer.enforcer.CheckSignatureRule">
+                  <signature>
+                    <groupId>org.codehaus.mojo.signature</groupId>
+                    <artifactId>java16</artifactId>
+                  </signature>
+                </checkSignatureRule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Checks code format rules. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
           <configLocation>${checkstyle.config.location}</configLocation>
@@ -464,6 +503,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Compiles the Java source code -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -474,6 +514,7 @@
           <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
+      <!-- Generates Maven Plugin Mojo help and descriptors. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
@@ -496,6 +537,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Invokes the integration tests. -->
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
@@ -516,6 +558,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Generates the Javadocs and attach Javadoc artifact to Maven session. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -543,6 +586,7 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Generates UML images based on PlantUML files. -->
       <plugin>
         <groupId>com.github.jeluard</groupId>
         <artifactId>plantuml-maven-plugin</artifactId>
@@ -563,28 +607,6 @@
           </execution>
         </executions>
       </plugin>
-      <!--
-          <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <configuration>
-            <signature>
-            <groupId>org.codehaus.mojo.signature</groupId>
-            <artifactId>java16</artifactId>
-            <version>1.1</version>
-            </signature>
-          </configuration>
-          <executions>
-            <execution>
-            <id>check-java-1.6-compat</id>
-            <phase>test</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            </execution>
-          </executions>
-          </plugin>
-      -->
     </plugins>
   </build>
 </project>
