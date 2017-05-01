@@ -79,6 +79,7 @@
     <!-- For later checkstyle maven plugin version use 'google_checks.xml' instead of URL. -->
     <checkstyle.config.location>https://raw.githubusercontent.com/checkstyle/checkstyle/f0326fd4c85c3779c47013d2800ef6daf28721b1/src/main/resources/google_checks.xml</checkstyle.config.location>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <temporary.file.directory>${project.build.directory}</temporary.file.directory>
 
     <!-- last versions for use with Java 6 -->
     <maven.version>3.2.5</maven.version>
@@ -104,6 +105,7 @@
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
     <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
+    <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
     <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
     <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
     <animal-sniffer-maven-plugin.version>1.15</animal-sniffer-maven-plugin.version>
@@ -419,6 +421,10 @@
           </dependencies>
         </plugin>
         <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
           <artifactId>maven-invoker-plugin</artifactId>
           <version>${maven-invoker-plugin.version}</version>
         </plugin>
@@ -542,6 +548,16 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <!-- Execute unit tests -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <user.home>${temporary.file.directory}/user_home</user.home>
+            <java.io.tmpdir>${temporary.file.directory}</java.io.tmpdir>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
       <!-- Invokes the integration tests. -->
       <plugin>

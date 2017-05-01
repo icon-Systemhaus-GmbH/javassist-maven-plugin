@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+@Deprecated
 public class JavassistTransformerExecutorTest {
 
   private final static File ROOT = new File("tmp");

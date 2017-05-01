@@ -223,7 +223,7 @@ public class JavassistTransformerExecutor {
    * @see IClassTransformer#shouldTransform(CtClass)
    * @see IClassTransformer#applyTransformations(CtClass)
    */
-  public final void transform(IClassTransformer transformer,
+  public final void transform(final IClassTransformer transformer,
                               final String inputDir,
                               final String outputDir,
                               final Iterator<String> classNames) {
@@ -239,14 +239,7 @@ public class JavassistTransformerExecutor {
       return;
     }
     try {
-      // create new classpool for transform; don't blow up the default
-      final ClassPool classPool = new ClassPool(ClassPool.getDefault());
-      classPool.childFirstLookup = true;
-      classPool.appendClassPath(inputDir);
-      classPool
-        .appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
-      classPool.appendSystemPath();
-      debugClassLoader(classPool);
+      final ClassPool classPool = buildClassPool(inputDir);
       int classCounter = 0;
       while (classNames.hasNext()) {
         final String className = classNames.next();
@@ -279,6 +272,29 @@ public class JavassistTransformerExecutor {
     } catch (final Exception e) {
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  /**
+   * Creates a new instance of a {@link ClassPool} and append required class pathes on it.
+   *
+   * @param inputDir must not be {@code null}
+   *
+   * @return never {@code null}
+   *
+   * @throws NotFoundException if passed {@code inputDir} is a JAR or ZIP and not found.
+   * @throws NullPointerException if passed {@code inputDir} is {@code null}
+   *
+   * @since 1.2.0
+   */
+  protected ClassPool buildClassPool(final String inputDir) throws NotFoundException {
+    // create new classpool for transform; don't blow up the default
+    final ClassPool classPool = new ClassPool(ClassPool.getDefault());
+    classPool.childFirstLookup = true;
+    classPool.appendClassPath(inputDir);
+    classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
+    classPool.appendSystemPath();
+    debugClassLoader(classPool);
+    return classPool;
   }
 
   /**
