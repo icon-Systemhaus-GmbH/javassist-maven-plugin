@@ -1,11 +1,16 @@
+# Netbeans
 nb-configuration.xml
+nbactions.xml
+# IDEA
 .idea
 *.iml
+# Eclipse
+.settings
+.classpath
+.project
 bin
+#
 *~
-/.settings
-/.classpath
-/.project
-/target
+target
 src/it/resources/project1/*.log
 src/it/resources/project1/target/

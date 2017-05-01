@@ -120,7 +120,7 @@
     <easymock.version>3.4</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
     <plexus-interpolation.version>1.24</plexus-interpolation.version>
-
+    <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -437,6 +437,11 @@
           <artifactId>animal-sniffer-maven-plugin</artifactId>
           <version>${animal-sniffer-maven-plugin.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -492,6 +497,7 @@
           <!-- Ignores the import (group) order and creepy HTML paragraph handling. -->
           <violationIgnore>CustomImportOrder,JavadocParagraph</violationIgnore>
           <violationSeverity>warning</violationSeverity>
+          <excludes>${basedir}/target/generated-sources/**</excludes>
         </configuration>
         <executions>
           <execution>
@@ -603,6 +609,40 @@
             <phase>site</phase>
             <goals>
               <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>pre-unit-test</id>
+            <phase>process-test-sources</phase>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>pre-integration-test</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>post-unit-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>post-integration-test</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>report-integration</goal>
             </goals>
           </execution>
         </executions>
