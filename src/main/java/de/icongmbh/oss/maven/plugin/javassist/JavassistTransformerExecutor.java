@@ -17,6 +17,7 @@
 package de.icongmbh.oss.maven.plugin.javassist;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 import javassist.CtField.Initializer;
 import javassist.build.IClassTransformer;
+import javassist.build.JavassistBuildException;
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.ClassFile;
 
@@ -46,7 +48,10 @@ import javassist.bytecode.ClassFile;
  */
 public class JavassistTransformerExecutor {
 
-  private static final String STAMP_FIELD_NAME = "__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__";
+  /**
+   * Stamp field name prefix.
+   */
+  static final String STAMP_FIELD_NAME = "__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__";
 
   private IClassTransformer[] transformerInstances = new IClassTransformer[0];
 
@@ -219,7 +224,7 @@ public class JavassistTransformerExecutor {
    * @param classNames could be {@code null} or empty. If it is {@code null} or empty nothing will
    *          be transformed.
    *
-   * @see #initializeClass(CtClass)
+   * @see #initializeClass(ClassPool, CtClass)
    * @see IClassTransformer#shouldTransform(CtClass)
    * @see IClassTransformer#applyTransformations(CtClass)
    */
@@ -233,13 +238,13 @@ public class JavassistTransformerExecutor {
     if (null == inputDir || inputDir.trim().isEmpty()) {
       return;
     }
-    final String outDirectory = outputDir != null && !outputDir.trim().isEmpty() ? outputDir
-            : inputDir;
     if (null == classNames || !classNames.hasNext()) {
       return;
     }
+    final String inDirectory = inputDir.trim();
     try {
-      final ClassPool classPool = buildClassPool(inputDir);
+      final ClassPool classPool = configureClassPool(buildClassPool(), inDirectory);
+      final String outDirectory = evaluateOutputDirectory(outputDir, inDirectory);
       int classCounter = 0;
       while (classNames.hasNext()) {
         final String className = classNames.next();
@@ -250,7 +255,7 @@ public class JavassistTransformerExecutor {
           LOGGER.debug("Got class name {}", className);
           classPool.importPackage(className);
           final CtClass candidateClass = classPool.get(className);
-          initializeClass(candidateClass);
+          initializeClass(classPool, candidateClass);
           if (!hasStamp(candidateClass) && transformer.shouldTransform(candidateClass)) {
             transformer.applyTransformations(candidateClass);
             applyStamp(candidateClass);
@@ -262,33 +267,74 @@ public class JavassistTransformerExecutor {
           LOGGER.warn("Class {} could not be resolved due to dependencies not found on "
                       + "current classpath (usually your class depends on \"provided\""
                       + " scoped dependencies).", className);
-        } catch (final Exception ex) { // EOFException ...
+        } catch (final IOException ex) { // EOFException ...
+          LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
+                       className,
+                       ex);
+        } catch (final CannotCompileException ex) {
+          LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
+                       className,
+                       ex);
+        } catch (final JavassistBuildException ex) {
           LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
                        className,
                        ex);
         }
       }
       LOGGER.info("#{} classes instrumented by {}", classCounter, getClass().getName());
-    } catch (final Exception e) {
+    } catch (final NotFoundException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
   }
 
   /**
-   * Creates a new instance of a {@link ClassPool} and append required class pathes on it.
+   * Evaluates and returns the output directory.
    *
+   * <p>
+   * If the passed {@code outputDir} is {@code null} or empty, the passed {@code inputDir} otherwise
+   * the {@code outputDir} will returned.
+   *
+   * @param outputDir could be {@code null} or empty
    * @param inputDir must not be {@code null}
    *
    * @return never {@code null}
    *
-   * @throws NotFoundException if passed {@code inputDir} is a JAR or ZIP and not found.
    * @throws NullPointerException if passed {@code inputDir} is {@code null}
    *
    * @since 1.2.0
    */
-  protected ClassPool buildClassPool(final String inputDir) throws NotFoundException {
+  protected String evaluateOutputDirectory(final String outputDir, final String inputDir) {
+    return outputDir != null && !outputDir.trim().isEmpty() ? outputDir : inputDir.trim();
+  }
+
+  /**
+   * Creates a new instance of a {@link ClassPool}.
+   *
+   * @return never {@code null}
+   *
+   * @since 1.2.0
+   */
+  protected ClassPool buildClassPool() {
     // create new classpool for transform; don't blow up the default
-    final ClassPool classPool = new ClassPool(ClassPool.getDefault());
+    return new ClassPool(ClassPool.getDefault());
+  }
+
+  /**
+   * Configure the passed instance of a {@link ClassPool} and append required class pathes on it.
+   *
+   * @param classPool must not be {@code null}
+   * @param inputDir must not be {@code null}
+   *
+   * @return never {@code null}
+   *
+   * @throws NotFoundException if passed {@code classPool} is {@code null} or if passed
+   *           {@code inputDir} is a JAR or ZIP and not found.
+   * @throws NullPointerException if passed {@code inputDir} is {@code null}
+   *
+   * @since 1.2.0
+   */
+  protected ClassPool configureClassPool(final ClassPool classPool,
+                                         final String inputDir) throws NotFoundException {
     classPool.childFirstLookup = true;
     classPool.appendClassPath(inputDir);
     classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));
@@ -434,11 +480,12 @@ public class JavassistTransformerExecutor {
     return stampField;
   }
 
-  private void initializeClass(final CtClass candidateClass) throws NotFoundException {
+  private void initializeClass(final ClassPool classPool,
+                               final CtClass candidateClass) throws NotFoundException {
     debugClassFile(candidateClass.getClassFile2());
     // TODO hack to initialize class to avoid further NotFoundException (what's the right way of
     // doing this?)
-    candidateClass.subtypeOf(ClassPool.getDefault().get(Object.class.getName()));
+    candidateClass.subtypeOf(classPool.get(Object.class.getName()));
   }
 
   private void debugClassFile(final ClassFile classFile) {

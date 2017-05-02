@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -32,12 +33,17 @@ import org.junit.Test;
 public class TestJavassistTransformerExecutor_TransformerClasses_handling
         extends JavassistTransformerExecutorTestBase {
 
+  private JavassistTransformerExecutor sut;
+
+  @Before
+  public void setUp_SubjectUnderTest() {
+    sut = javassistTransformerExecutor();
+  }
+
   @Test
   public void throw_NullPointerException_if_set_null_for_TransformerClasses_array() throws Exception {
     // given
     expectedExceptionRule.expect(NullPointerException.class);
-
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
 
     // when
     sut.setTransformerClasses((IClassTransformer[])null);
@@ -53,7 +59,6 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
     assertThat("transformed class directory is empty before transformation",
                FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
                is(0));
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
 
     // when
     sut.setTransformerClasses(new IClassTransformer[0]);
@@ -73,7 +78,6 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
     assertThat("transformed class directory is empty before transformation",
                FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
                is(0));
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
 
     // when
     sut.setTransformerClasses(new IClassTransformer[] {null});
@@ -93,7 +97,6 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
     assertThat("transformed class directory is empty before transformation",
                FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
                is(0));
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
 
     // when
     sut.execute();
@@ -120,7 +123,6 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
 
     replay(mockTransformer);
 
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
     sut.setTransformerClasses(mockTransformer);
 
     // when
@@ -143,7 +145,6 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
     expect(mockTransformer.shouldTransform(capture(classCapture_shouldTransform))).andReturn(false);
     replay(mockTransformer);
 
-    final JavassistTransformerExecutor sut = javassistTransformerExecutor();
     sut.setTransformerClasses(mockTransformer);
 
     // when

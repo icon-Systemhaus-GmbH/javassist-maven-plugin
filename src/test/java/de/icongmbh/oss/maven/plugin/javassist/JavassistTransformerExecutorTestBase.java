@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import javassist.ClassPool;
-import javassist.NotFoundException;
 import javax.tools.JavaCompiler;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -53,26 +52,28 @@ public abstract class JavassistTransformerExecutorTestBase {
   private File transformedClassDirectory;
 
   @Before
-  public void setUp_subjectUnderTest() throws IOException {
+  public void setUp_directories() throws IOException {
     classDirectory = temporaryFolderRule.newFolder("classes");
     transformedClassDirectory = temporaryFolderRule.newFolder("transformed-classes");
+  }
 
-    if (null == classPool()) {
+  protected JavassistTransformerExecutor javassistTransformerExecutor() {
+    return javassistTransformerExecutor(null);
+  }
+
+  protected JavassistTransformerExecutor javassistTransformerExecutor(final ClassPool classPool) {
+    if (null == classPool) {
       javassistTransformerExecutor = new JavassistTransformerExecutor();
     } else {
       javassistTransformerExecutor = new JavassistTransformerExecutor(){
         @Override
-        protected ClassPool buildClassPool(final String inputDir) throws NotFoundException {
-          return classPool();
+        protected ClassPool buildClassPool() {
+          return classPool;
         }
       };
     }
     javassistTransformerExecutor.setInputDirectory(classDirectory.getAbsolutePath());
     javassistTransformerExecutor.setOutputDirectory(transformedClassDirectory.getAbsolutePath());
-
-  }
-
-  protected JavassistTransformerExecutor javassistTransformerExecutor() {
     return javassistTransformerExecutor;
   }
 
@@ -82,10 +83,6 @@ public abstract class JavassistTransformerExecutorTestBase {
 
   protected File transformedClassDirectory() {
     return transformedClassDirectory;
-  }
-
-  protected ClassPool classPool() {
-    return null;
   }
 
   @SuppressWarnings("resource")
