@@ -96,6 +96,10 @@
     <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
     <maven-plugin-annotations.version>3.5</maven-plugin-annotations.version>
     <maven-site-plugin.version>3.6</maven-site-plugin.version>
+    <maven-fluido-skin.version>1.6</maven-fluido-skin.version>
+    <maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
+    <maven-surefire-report-plugin.version>2.20</maven-surefire-report-plugin.version>
+    <maven-plugin-tools-javadoc.version>3.5</maven-plugin-tools-javadoc.version>
     <doxia-module-markdown.version>1.7</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
     <plexus-utils.version>3.0.24</plexus-utils.version>
@@ -418,6 +422,11 @@
               <artifactId>wagon-gitsite</artifactId>
               <version>${wagon-gitsite.version}</version>
             </dependency>
+            <dependency>
+              <groupId>org.apache.maven.skins</groupId>
+              <artifactId>maven-fluido-skin</artifactId>
+              <version>${maven-fluido-skin.version}</version>
+            </dependency>
           </dependencies>
         </plugin>
         <plugin>
@@ -591,6 +600,13 @@
           <detectJavaApiLink>true</detectJavaApiLink>
           <encoding>${project.build.sourceEncoding}</encoding>
           <javadocVersion>${java.compiler.version}</javadocVersion>
+          <tagletArtifacts>
+            <tagletArtifact combine.id="org.apache.maven.plugin-tools:maven-plugin-tools-javadoc">
+              <groupId>org.apache.maven.plugin-tools</groupId>
+              <artifactId>maven-plugin-tools-javadoc</artifactId>
+              <version>${maven-plugin-tools-javadoc.version}</version>
+            </tagletArtifact>
+          </tagletArtifacts>
         </configuration>
         <executions>
           <execution>
@@ -665,4 +681,107 @@
       </plugin>
     </plugins>
   </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${maven-project-info-reports-plugin.version}</version>
+        <configuration>
+          <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+          <lineLength>100</lineLength>
+          <showAvatarImages>true</showAvatarImages>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <inherited>true</inherited>
+            <reports>
+              <!-- required set of reports -->
+              <report>index</report>
+              <report>summary</report>
+              <report>project-team</report>
+              <report>license</report>
+              <report>dependency-info</report>
+              <report>scm</report>
+              <!-- optional set of reports -->
+              <report>cim</report>
+              <report>dependency-management</report>
+              <report>dependencies</report>
+              <report>distribution-management</report>
+              <report>issue-tracking</report>
+              <report>mailing-list</report>
+              <report>modules</report>
+              <report>plugin-management</report>
+              <report>plugins</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${maven-plugin-plugin.version}</version>
+      </plugin>
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc-plugin.version}</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <docencoding>${project.build.sourceEncoding}</docencoding>
+          <nohelp>true</nohelp>
+          <quiet>true</quiet>
+          <show>private</show>
+          <stylesheet>java</stylesheet>
+          <author>false</author>
+          <breakiterator>true</breakiterator>
+          <charset>UTF-8</charset>
+          <detectJavaApiLink>true</detectJavaApiLink>
+          <javadocVersion>${java.compiler.version}</javadocVersion>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc-no-fork</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${maven-surefire-report-plugin.version}</version>
+        <configuration>
+          <encoding>${encoding}</encoding>
+          <reportsDirectories>
+            <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+          </reportsDirectories>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report-only</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <!-- select non-aggregate reports -->
+              <report>report</report>
+              <report>report-integration</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>
