@@ -512,7 +512,9 @@
           <!-- Ignores the import (group) order and creepy HTML paragraph handling. -->
           <violationIgnore>CustomImportOrder,JavadocParagraph</violationIgnore>
           <violationSeverity>warning</violationSeverity>
-          <excludes>${basedir}/target/generated-sources/**</excludes>
+          <!-- @see: https://stackoverflow.com/questions/2362652/excluding-classes-in-maven-checkstyle-plugin-reports -->
+          <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          <excludes>**/generated-sources/**/*</excludes>
         </configuration>
         <executions>
           <execution>
