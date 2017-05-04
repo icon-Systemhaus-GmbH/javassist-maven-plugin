@@ -16,9 +16,16 @@
 
 package de.icongmbh.oss.maven.plugin.javassist;
 
+import static de.icongmbh.oss.maven.plugin.javassist.JavassistTransformerExecutor.STAMP_FIELD_NAME;
 import static java.lang.System.err;
 import static java.lang.System.out;
 import static javax.tools.ToolProvider.getSystemJavaCompiler;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.startsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
@@ -26,7 +33,14 @@ import static org.junit.rules.ExpectedException.none;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import javassist.CannotCompileException;
 import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.LoaderClassPath;
+import javassist.NotFoundException;
+import javassist.bytecode.ClassFile;
 import javax.tools.JavaCompiler;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -85,6 +99,50 @@ public abstract class JavassistTransformerExecutorTestBase {
     return transformedClassDirectory;
   }
 
+  @SuppressWarnings("unchecked")
+  protected Iterator<String> classNames(final String className) {
+    final Iterator<String> classNames = mock("classNames", Iterator.class);
+    expect(classNames.hasNext()).andReturn(true).times(2);
+    expect(classNames.hasNext()).andReturn(false);
+    expect(classNames.next()).andReturn(className);
+    return classNames;
+  }
+
+  protected ClassPool configureClassPool(final ClassPool classPool) throws NotFoundException {
+    // actual class directory
+    expect(classPool.appendClassPath(eq(classDirectory().getAbsolutePath()))).andReturn(null);
+    // actual classloader
+    expect(classPool.appendClassPath(isA(LoaderClassPath.class))).andReturn(null);
+    // actual system classpath
+    expect(classPool.appendSystemPath()).andReturn(null);
+    expect(classPool.get(Object.class.getName())).andReturn(mock("Object_CtClass", CtClass.class))
+      .anyTimes();
+    return classPool;
+  }
+
+  protected CtClass initializeClass() throws NotFoundException {
+    return initializeClass(mock("candidateClass", CtClass.class));
+  }
+
+  protected CtClass initializeClass(final CtClass candidateClass) throws NotFoundException {
+    expect(candidateClass.getClassFile2()).andReturn(null);
+    expect(candidateClass.subtypeOf(anyObject(CtClass.class))).andReturn(true);
+    return candidateClass;
+  }
+
+  protected CtClass stampedClass(final String className) throws CannotCompileException,
+                                                                  NotFoundException {
+    final CtClass candidateClass = initializeClass(mock("candidateClass", CtClass.class));
+    expect(candidateClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
+    // real stamping
+    expect(candidateClass.isInterface()).andReturn(false);
+    expect(candidateClass.getClassFile2()).andReturn(new ClassFile(false, className, null));
+    expect(candidateClass.isFrozen()).andReturn(false);
+    expect(candidateClass.getName()).andReturn(className).anyTimes();
+    candidateClass.addField(anyObject(CtField.class), anyObject(CtField.Initializer.class));
+    return candidateClass;
+  }
+
   @SuppressWarnings("resource")
   protected String oneTestClass() throws IOException {
     final String packageName = "test";
@@ -104,21 +162,24 @@ public abstract class JavassistTransformerExecutorTestBase {
   }
 
   @SuppressWarnings("resource")
-  protected String withInnerClass() throws IOException {
+  protected String[] withInnerClass() throws IOException {
     final String packageName = "test";
     final String className = "WithInnerTest";
+    final String innerClassName = "InnerClass";
     final StringBuilder source = new StringBuilder().append("package ").append(packageName)
       .append(";").append("public class ").append(className).append(" { ").append("  static { ")
       .append("    System.out.println(\"hello\"); ").append("  }").append("  public ")
       .append(className).append("() { ").append("    System.out.println(\"world\"); ")
-      .append("  } ").append("  class InnerClass {").append("  }").append("}");
+      .append("  } ").append("  class ").append(innerClassName).append(" {").append("  }")
+      .append("}");
 
     compileSourceFiles(writeSourceFile(className, source.toString()));
     // source file, compiled class and compiled inner class
     assertThat("3 classes in classes directory",
                FileUtils.listFiles(classDirectory(), null, true).size(),
                is(3));
-    return packageName + '.' + className;
+    return new String[] {packageName + '.' + className,
+                         packageName + '.' + className + '$' + innerClassName};
   }
 
   private void compileSourceFiles(File ... sourceFiles) {

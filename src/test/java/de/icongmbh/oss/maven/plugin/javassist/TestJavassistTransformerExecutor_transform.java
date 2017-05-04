@@ -1,6 +1,8 @@
 
 package de.icongmbh.oss.maven.plugin.javassist;
 
+import static de.icongmbh.oss.maven.plugin.javassist.JavassistTransformerExecutor.STAMP_FIELD_NAME;
+
 import javassist.build.IClassTransformer;
 
 import static org.easymock.EasyMock.mock;
@@ -12,15 +14,18 @@ import java.util.Iterator;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.LoaderClassPath;
 import javassist.NotFoundException;
-import javassist.bytecode.ClassFile;
-import org.easymock.EasyMock;
+
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.resetToNice;
+import static org.easymock.EasyMock.same;
+import static org.easymock.EasyMock.startsWith;
 import static org.hamcrest.core.Is.is;
+
+import java.io.IOException;
+import javassist.CannotCompileException;
+import javassist.build.JavassistBuildException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -147,7 +152,7 @@ public class TestJavassistTransformerExecutor_transform
   public void do_nothing_if_classNames_hasNext_but_next_returns_null() throws Exception {
     // given
     resetToNice(this.classPool);
-    final Iterator<String> classNames = createAndConfigureClassNamesIteratorMock(null);
+    final Iterator<String> classNames = classNames(null);
     replay(classNames, this.classPool, this.classTransformer);
 
     // when
@@ -182,6 +187,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
+  @SuppressWarnings("unchecked")
   public void throw_RuntimeException_if_internal_NotFoundException_was_catched() throws Exception {
     // given
     final NotFoundException internalException = new NotFoundException("expected exception");
@@ -191,30 +197,31 @@ public class TestJavassistTransformerExecutor_transform
     expectedExceptionRule.expectCause(is(internalException));
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     expect(classNames.hasNext()).andReturn(true);
-    expect(classNames.hasNext()).andReturn(false); // bypass execution in while-loop
 
     expect(this.classPool.appendClassPath(eq(classDirectory().getAbsolutePath())))
       .andThrow(internalException);
 
     replay(classNames, this.classPool, this.classTransformer);
 
-    // when
-    sut.transform(this.classTransformer,
-                  classDirectory().getAbsolutePath(),
-                  transformedClassDirectory().getAbsolutePath(),
-                  classNames);
-
-    // then
-    verify(classNames, this.classPool, this.classTransformer);
+    try {
+      // when
+      sut.transform(this.classTransformer,
+                    classDirectory().getAbsolutePath(),
+                    transformedClassDirectory().getAbsolutePath(),
+                    classNames);
+    } finally {
+      // then
+      verify(classNames, this.classPool, this.classTransformer);
+    }
   }
 
   @Test
-  public void do_not_break_if_class_could_not_found_in_classPool_and_throws_NotFoundException() throws Exception {
+  public void continue_if_class_could_not_found_in_classPool_and_throws_NotFoundException() throws Exception {
     // given
     final String className = "test.TestClass";
     final NotFoundException internalException = new NotFoundException("expected exception");
 
-    final Iterator<String> classNames = createAndConfigureClassNamesIteratorMock(className);
+    final Iterator<String> classNames = classNames(className);
 
     configureClassPool(this.classPool).importPackage(className);
     expectLastCall();
@@ -235,12 +242,11 @@ public class TestJavassistTransformerExecutor_transform
   public void not_applyTransformation_if_hasStamp_returns_true() throws Exception {
     // given
     final String className = "test.TestClass";
-    final CtClass candidateClass = initializeClass(mock("candidateClass", CtClass.class));
-    expect(candidateClass
-      .getDeclaredField(EasyMock.startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME)))
-        .andReturn(mock("stampField", CtField.class));
+    final CtClass candidateClass = initializeClass();
+    expect(candidateClass.getDeclaredField(startsWith(STAMP_FIELD_NAME)))
+      .andReturn(mock("stampField", CtField.class));
 
-    final Iterator<String> classNames = createAndConfigureClassNamesIteratorMock(className);
+    final Iterator<String> classNames = classNames(className);
 
     configureClassPool(this.classPool).importPackage(className);
     expectLastCall();
@@ -261,14 +267,12 @@ public class TestJavassistTransformerExecutor_transform
   public void not_applyTransformation_if_shouldTransform_returns_false() throws Exception {
     // given
     final String className = "test.TestClass";
-    final CtClass candidateClass = initializeClass(mock("candidateClass", CtClass.class));
-    expect(candidateClass
-      .getDeclaredField(EasyMock.startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME)))
-        .andReturn(null);
+    final CtClass candidateClass = initializeClass();
+    expect(candidateClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
 
-    expect(this.classTransformer.shouldTransform(EasyMock.same(candidateClass))).andReturn(false);
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(false);
 
-    final Iterator<String> classNames = createAndConfigureClassNamesIteratorMock(className);
+    final Iterator<String> classNames = classNames(className);
 
     configureClassPool(this.classPool).importPackage(className);
     expectLastCall();
@@ -290,28 +294,18 @@ public class TestJavassistTransformerExecutor_transform
     // given
     final String className = oneTestClass();
 
-    final Iterator<String> classNames = createAndConfigureClassNamesIteratorMock(className);
+    final Iterator<String> classNames = classNames(className);
 
-    final CtClass candidateClass = initializeClass(mock("candidateClass", CtClass.class));
-    expect(candidateClass
-      .getDeclaredField(EasyMock.startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME)))
-        .andReturn(null);
-    // real stamping
-    expect(candidateClass.isInterface()).andReturn(false);
-    expect(candidateClass.getClassFile2()).andReturn(new ClassFile(false, className, null));
-    expect(candidateClass.isFrozen()).andReturn(false);
-    expect(candidateClass.getName()).andReturn(className).anyTimes();
-    candidateClass.addField(EasyMock.anyObject(CtField.class),
-                            EasyMock.anyObject(CtField.Initializer.class));
-    candidateClass.writeFile(EasyMock.eq(transformedClassDirectory().getAbsolutePath()));
+    final CtClass candidateClass = stampedClass(className);
+    candidateClass.writeFile(eq(transformedClassDirectory().getAbsolutePath()));
 
     configureClassPool(this.classPool).importPackage(className);
     expectLastCall();
     expect(this.classPool.get(className)).andReturn(candidateClass);
 
-    expect(this.classTransformer.shouldTransform(EasyMock.same(candidateClass))).andReturn(true);
-    this.classTransformer.applyTransformations(EasyMock.same(candidateClass));
-    EasyMock.expectLastCall();
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
 
     replay(candidateClass, classNames, this.classPool, this.classTransformer);
 
@@ -325,30 +319,180 @@ public class TestJavassistTransformerExecutor_transform
     verify(candidateClass, classNames, this.classPool, this.classTransformer);
   }
 
+  @Test
   @SuppressWarnings("unchecked")
-  protected Iterator<String> createAndConfigureClassNamesIteratorMock(final String className) {
-    final Iterator<String> classNames = mock("classNames", Iterator.class);
-    expect(classNames.hasNext()).andReturn(true).times(2);
-    expect(classNames.hasNext()).andReturn(false);
-    expect(classNames.next()).andReturn(className);
-    return classNames;
+  public void continue_transform_with_next_class_if_internal_JavassistBuildException_was_catched_on_applyTransformations() throws Exception {
+    // given
+    final String className = oneTestClass();
+    final JavassistBuildException internalException = new JavassistBuildException("expected exception");
+
+    final Iterator<String> classNames = classNames(className);
+
+    CtClass candidateClass = initializeClass();
+    expect(candidateClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall().andThrow(internalException);
+
+    replay(classNames, candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer,
+                  classDirectory().getAbsolutePath(),
+                  transformedClassDirectory().getAbsolutePath(),
+                  classNames);
+    // then
+    verify(classNames, candidateClass, this.classPool, this.classTransformer);
   }
 
-  private ClassPool configureClassPool(final ClassPool classPool) throws NotFoundException {
-    // actual class directory
-    expect(classPool.appendClassPath(eq(classDirectory().getAbsolutePath()))).andReturn(null);
-    // actual classloader
-    expect(classPool.appendClassPath(isA(LoaderClassPath.class))).andReturn(null);
-    // actual system classpath
-    expect(classPool.appendSystemPath()).andReturn(null);
-    expect(classPool.get(Object.class.getName())).andReturn(mock("Object_CtClass", CtClass.class))
-      .anyTimes();
-    return classPool;
+  @Test
+  @SuppressWarnings("unchecked")
+  public void continue_transform_with_next_class_if_internal_IOException_was_catched_on_writeFile() throws Exception {
+    // given
+    final String className = oneTestClass();
+    final IOException internalException = new IOException("expected exception");
+
+    final Iterator<String> classNames = classNames(className);
+
+    CtClass candidateClass = stampedClass(className);
+
+    candidateClass.writeFile(eq(transformedClassDirectory().getAbsolutePath()));
+    expectLastCall().andThrow(internalException);
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
+
+    replay(classNames, candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer,
+                  classDirectory().getAbsolutePath(),
+                  transformedClassDirectory().getAbsolutePath(),
+                  classNames);
+    // then
+    verify(classNames, candidateClass, this.classPool, this.classTransformer);
   }
 
-  private CtClass initializeClass(final CtClass candidateClass) throws NotFoundException {
-    expect(candidateClass.getClassFile2()).andReturn(null);
-    expect(candidateClass.subtypeOf(EasyMock.anyObject(CtClass.class))).andReturn(true);
-    return candidateClass;
+  @Test
+  @SuppressWarnings("unchecked")
+  public void continue_transform_with_next_class_if_internal_CannotCompileException_was_catched_on_writeFile() throws Exception {
+    // given
+    final String className = oneTestClass();
+    final CannotCompileException internalException = new CannotCompileException("expected exception");
+
+    final Iterator<String> classNames = classNames(className);
+
+    final CtClass candidateClass = stampedClass(className);
+
+    candidateClass.writeFile(eq(transformedClassDirectory().getAbsolutePath()));
+    expectLastCall().andThrow(internalException);
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
+
+    replay(classNames, candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer,
+                  classDirectory().getAbsolutePath(),
+                  transformedClassDirectory().getAbsolutePath(),
+                  classNames);
+    // then
+    verify(classNames, candidateClass, this.classPool, this.classTransformer);
   }
+
+  @Test
+  public void use_only_input_directory() throws Exception {
+    // given
+    final String className = oneTestClass();
+
+    final CtClass candidateClass = stampedClass(className);
+    // real stamping
+    // use input if output is not set
+    candidateClass.writeFile(eq(classDirectory().getAbsolutePath()));
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
+
+    replay(candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer, classDirectory().getAbsolutePath());
+
+    // then
+    verify(candidateClass, this.classPool, this.classTransformer);
+  }
+
+  @Test
+  public void use_input_directory_if_output_directory_is_null() throws Exception {
+    // given
+    final String className = oneTestClass();
+
+    final CtClass candidateClass = stampedClass(className);
+    // use input if output is not set
+    candidateClass.writeFile(eq(classDirectory().getAbsolutePath()));
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
+
+    replay(candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer, classDirectory().getAbsolutePath(), null);
+
+    // then
+    verify(candidateClass, this.classPool, this.classTransformer);
+  }
+
+  @Test
+  public void use_input_directory_if_output_directory_is_empty() throws Exception {
+    // given
+    final String className = oneTestClass();
+
+    final CtClass candidateClass = stampedClass(className);
+    // use input if output is not set
+    candidateClass.writeFile(eq(classDirectory().getAbsolutePath()));
+
+    configureClassPool(this.classPool).importPackage(className);
+    expectLastCall();
+    expect(this.classPool.get(className)).andReturn(candidateClass);
+
+    expect(this.classTransformer.shouldTransform(same(candidateClass))).andReturn(true);
+    this.classTransformer.applyTransformations(same(candidateClass));
+    expectLastCall();
+
+    replay(candidateClass, this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer, classDirectory().getAbsolutePath(), "   ");
+
+    // then
+    verify(candidateClass, this.classPool, this.classTransformer);
+  }
+
 }
