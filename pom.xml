@@ -441,6 +441,28 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
+          <configuration>
+            <applyJavadocSecurityFix>true</applyJavadocSecurityFix>
+            <sourcepath>${project.build.sourceDirectory}</sourcepath>
+            <encoding>${project.build.sourceEncoding}</encoding>
+            <docencoding>${project.build.sourceEncoding}</docencoding>
+            <nohelp>true</nohelp>
+            <quiet>true</quiet>
+            <show>private</show>
+            <stylesheet>java</stylesheet>
+            <author>false</author>
+            <breakiterator>true</breakiterator>
+            <charset>UTF-8</charset>
+            <detectJavaApiLink>true</detectJavaApiLink>
+            <javadocVersion>${java.compiler.version}</javadocVersion>
+            <tagletArtifacts>
+              <tagletArtifact combine.id="org.apache.maven.plugin-tools:maven-plugin-tools-javadoc">
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-tools-javadoc</artifactId>
+                <version>${maven-plugin-tools-javadoc.version}</version>
+              </tagletArtifact>
+            </tagletArtifacts>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>com.github.jeluard</groupId>
@@ -595,21 +617,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <author>false</author>
-          <breakiterator>true</breakiterator>
-          <charset>UTF-8</charset>
-          <detectJavaApiLink>true</detectJavaApiLink>
-          <encoding>${project.build.sourceEncoding}</encoding>
-          <javadocVersion>${java.compiler.version}</javadocVersion>
-          <tagletArtifacts>
-            <tagletArtifact combine.id="org.apache.maven.plugin-tools:maven-plugin-tools-javadoc">
-              <groupId>org.apache.maven.plugin-tools</groupId>
-              <artifactId>maven-plugin-tools-javadoc</artifactId>
-              <version>${maven-plugin-tools-javadoc.version}</version>
-            </tagletArtifact>
-          </tagletArtifacts>
-        </configuration>
         <executions>
           <execution>
             <id>attach-javadoc</id>
@@ -620,7 +627,7 @@
           <execution>
             <id>aggregate</id>
             <goals>
-              <goal>javadoc</goal>
+              <goal>javadoc-no-fork</goal>
             </goals>
             <phase>site</phase>
           </execution>
@@ -725,24 +732,10 @@
         <artifactId>maven-plugin-plugin</artifactId>
         <version>${maven-plugin-plugin.version}</version>
       </plugin>
-      <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven-javadoc-plugin.version}</version>
-        <configuration>
-          <encoding>${project.build.sourceEncoding}</encoding>
-          <docencoding>${project.build.sourceEncoding}</docencoding>
-          <nohelp>true</nohelp>
-          <quiet>true</quiet>
-          <show>private</show>
-          <stylesheet>java</stylesheet>
-          <author>false</author>
-          <breakiterator>true</breakiterator>
-          <charset>UTF-8</charset>
-          <detectJavaApiLink>true</detectJavaApiLink>
-          <javadocVersion>${java.compiler.version}</javadocVersion>
-        </configuration>
         <reportSets>
           <reportSet>
             <reports>
@@ -751,7 +744,6 @@
           </reportSet>
         </reportSets>
       </plugin>
-      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
@@ -784,6 +776,16 @@
           </reportSet>
         </reportSets>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>${maven-invoker-plugin.version}</version>
+      </plugin>
+
     </plugins>
   </reporting>
 </project>

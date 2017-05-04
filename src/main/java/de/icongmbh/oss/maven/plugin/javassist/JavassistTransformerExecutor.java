@@ -462,7 +462,7 @@ public class JavassistTransformerExecutor {
    * @return never {@code null}
    *
    * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
-   * @throws CannotCompileException
+   * @throws CannotCompileException field could not created
    *
    * @see CtField
    */
