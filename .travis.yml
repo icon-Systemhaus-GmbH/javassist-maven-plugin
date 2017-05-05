@@ -1,6 +1,9 @@
 language: java
 jdk: openjdk6
 
+# https://blog.travis-ci.com/2017-05-04-precise-image-updates
+sudo: required
+
 install: mvn -DskipTests=true -Dinvoker.skip -B -V install
 script: mvn clean install 
 
