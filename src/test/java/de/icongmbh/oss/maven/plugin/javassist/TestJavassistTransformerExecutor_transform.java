@@ -495,4 +495,13 @@ public class TestJavassistTransformerExecutor_transform
     verify(candidateClass, this.classPool, this.classTransformer);
   }
 
+  private CtClass stampedClass(final String className) throws CannotCompileException,
+                                                       NotFoundException {
+    final CtClass candidateClass = super.stampedClass(className,
+                                                      initializeClass(mock("candidateClass",
+                                                                           CtClass.class)));
+    expect(candidateClass.getNestedClasses()).andReturn(new CtClass[0]);
+    return candidateClass;
+  }
+
 }

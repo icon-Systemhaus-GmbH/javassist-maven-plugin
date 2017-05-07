@@ -124,23 +124,23 @@ public abstract class JavassistTransformerExecutorTestBase {
     return initializeClass(mock("candidateClass", CtClass.class));
   }
 
-  protected CtClass initializeClass(final CtClass candidateClass) throws NotFoundException {
-    expect(candidateClass.getClassFile2()).andReturn(null);
-    expect(candidateClass.subtypeOf(anyObject(CtClass.class))).andReturn(true);
-    return candidateClass;
+  protected CtClass initializeClass(final CtClass ctClass) throws NotFoundException {
+    expect(ctClass.getClassFile2()).andReturn(null);
+    expect(ctClass.subtypeOf(anyObject(CtClass.class))).andReturn(true);
+    return ctClass;
   }
 
-  protected CtClass stampedClass(final String className) throws CannotCompileException,
-                                                                  NotFoundException {
-    final CtClass candidateClass = initializeClass(mock("candidateClass", CtClass.class));
-    expect(candidateClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
+  protected CtClass stampedClass(final String className, final CtClass ctClass)
+                                                                                throws CannotCompileException,
+                                                                                NotFoundException {
+    expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
     // real stamping
-    expect(candidateClass.isInterface()).andReturn(false);
-    expect(candidateClass.getClassFile2()).andReturn(new ClassFile(false, className, null));
-    expect(candidateClass.isFrozen()).andReturn(false);
-    expect(candidateClass.getName()).andReturn(className).anyTimes();
-    candidateClass.addField(anyObject(CtField.class), anyObject(CtField.Initializer.class));
-    return candidateClass;
+    expect(ctClass.isInterface()).andReturn(false);
+    expect(ctClass.getClassFile2()).andReturn(new ClassFile(false, className, null));
+    expect(ctClass.isFrozen()).andReturn(false);
+    expect(ctClass.getName()).andReturn(className).anyTimes();
+    ctClass.addField(anyObject(CtField.class), anyObject(CtField.Initializer.class));
+    return ctClass;
   }
 
   @SuppressWarnings("resource")

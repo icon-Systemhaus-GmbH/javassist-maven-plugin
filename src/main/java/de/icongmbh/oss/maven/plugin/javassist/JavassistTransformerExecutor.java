@@ -259,6 +259,16 @@ public class JavassistTransformerExecutor {
           if (!hasStamp(candidateClass) && transformer.shouldTransform(candidateClass)) {
             transformer.applyTransformations(candidateClass);
             applyStamp(candidateClass);
+            // #48
+            for (final CtClass nestedClass : candidateClass.getNestedClasses()) {
+              if (!nestedClass.isModified() || hasStamp(nestedClass)) {
+                continue;
+              }
+              final CtClass nestedCtClass = classPool.get(nestedClass.getName());
+              initializeClass(classPool, nestedCtClass);
+              applyStamp(nestedCtClass);
+              nestedCtClass.writeFile(outDirectory);
+            }
             candidateClass.writeFile(outDirectory);
             LOGGER.debug("Class {} instrumented by {}", className, getClass().getName());
             ++classCounter;
