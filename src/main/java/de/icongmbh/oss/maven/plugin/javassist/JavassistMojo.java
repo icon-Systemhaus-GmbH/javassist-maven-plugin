@@ -41,24 +41,34 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Maven plugin that will apply <a
- * href="http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist/">Javassist</a>
+ * href="http://www.javassist.org/">Javassist</a>
  * class transformations on compiled classes (bytecode instrumentation).
+ *
+ * <p>
+ * The real modifications of the bytecode are performed by one or more instances of the configured
+ * {@link IClassTransformer}.
+ * </p>
  * <p>
  * Example plugin configuration :
  * </p>
  *
  * <pre>
- * &lt;configuration&gt;
- *   &lt;skip&gt;true&lt;/skip&gt;
- *   &lt;includeTestClasses&gt;false&lt;/includeTestClasses&gt;
- *   &lt;buildDir&gt;bin/classes&lt;/buildDir&gt;
- *   &lt;testBuildDir&gt;bin/test-classes&lt;/testBuildDir&gt;
- *   &lt;transformerClasses&gt;
- *     &lt;transformerClass&gt;
- *      &lt;className&gt;de.icongmbh.oss.maven.plugin.javassist.SampleTransformer&lt;/className&gt;
- *     &lt;/transformerClass&gt;
- *   &lt;/transformerClasses&gt;
- * &lt;/configuration&gt;
+ * {@code
+ * ...
+ * <configuration>
+ *   <includeTestClasses>false</includeTestClasses>
+ *   <buildDir>bin/classes</buildDir>
+ *   <testBuildDir>bin/test-classes</testBuildDir>
+ *   <transformerClasses>
+ *     <transformerClass>
+ *      <className>
+ *       de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+ *      </className>
+ *     </transformerClass>
+ *   </transformerClasses>
+ * </configuration>
+ * ...
+ * }
  * </pre>
  *
  * @since 1.0.0
@@ -81,39 +91,101 @@ public class JavassistMojo extends AbstractMojo {
 
   /**
    * Skips all processing performed by this goal.
+   *
+   * <pre>
+   * {@code
+   * ...
+   * <configuration>
+   *   <skip>false</skip>
+   * </configuration>
+   * ...
+   * }
+   * </pre>
    */
   @Parameter(defaultValue = "false", property = "javassist.skip", required = false)
   private boolean skip;
 
   /**
    * Whether or not to include test classes to be processed by declared transformers.
+   *
+   * <pre>
+   * {@code
+   * ...
+   * <configuration>
+   *   <includeTestClasses>false</includeTestClasses>
+   * </configuration>
+   * ...
+   * }
+   * </pre>
    */
   @Parameter(defaultValue = "true", property = "javassist.includeTestClasses", required = true)
   private Boolean includeTestClasses;
 
+  /**
+   * Configure one or more class transformer.
+   *
+   * <pre>
+   * {@code
+   * ...
+   * <configuration>
+   *   <transformerClasses>
+   *     <transformerClass>
+   *      <className>
+   *       de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+   *      </className>
+   *     </transformerClass>
+   *   </transformerClasses>
+   * </configuration>
+   * ...
+   * }
+   * </pre>
+   */
   @Parameter(property = "javassist.transformerClasses", required = true)
   private ClassTransformerConfiguration[] transformerClasses;
 
   /**
    * Allows to customize the build directory of the project, used for both finding classes to
    * transform and output them once transformed.
-   * <br>
-   * By default, equals to Maven's project output directory.
-   * <br>
+   *
+   * <p>
    * The path must be either absolute or relative to project base directory.
+   * </p>
+   *
+   * <pre>
+   * {@code
+   * ...
+   * <configuration>
+   *   <buildDir>bin/classes</buildDir>
+   * </configuration>
+   * ...
+   * }
+   * </pre>
    */
-  @Parameter(property = "javassist.buildDir", required = false)
+  @Parameter(defaultValue = "target/classes", property = "javassist.buildDir", required = false)
   private String buildDir;
 
   /**
    * Allows to customize the build directory of the tests of the project, used for both finding
    * classes to transform and output them once transformed.
-   * <br>
-   * By default, equals to Maven's project test output directory.
-   * <br>
+   *
+   * <p>
    * The path must be either absolute or relative to project base directory.
+   * </p>
+   *
+   * <pre>
+   * {@code
+   * ...
+   * <configuration>
+   *   <testBuildDir>bin/test-classes</testBuildDir>
+   * </configuration>
+   * ...
+   * }
+   * </pre>
    */
-  @Parameter(property = "javassist.testBuildDir", required = false)
+  // @formatter:off
+  @Parameter(defaultValue = "target/test-classes", property = "javassist.testBuildDir",
+          required = false)
+  // @formatter:on
   private String testBuildDir;
 
   @Override
@@ -295,26 +367,39 @@ public class JavassistMojo extends AbstractMojo {
   /**
    * Whether or not to include test classes in class transformation.
    *
-   * @return {@code true} if configuration option is set otherwise {@code false}
+   * @return {@code true} if configuration option is set otherwise {@code false} and never
+   *         {@code null}
    */
   public Boolean getIncludeTestClasses() {
-    return includeTestClasses;
+    return null == includeTestClasses ? Boolean.FALSE : includeTestClasses;
   }
 
   /**
    * The configured transformer classes.
    *
-   * @return all configured transformer classes.
+   * @return all configured transformer classes and never {@code null} but maybe empty.
    */
   public ClassTransformerConfiguration[] getTransformerClasses() {
     return (null == this.transformerClasses) ? new ClassTransformerConfiguration[0]
             : this.transformerClasses.clone();
   }
 
+  /**
+   * The build directory of the project, used for both finding classes to
+   * transform and output them once transformed.
+   *
+   * @return never {@code null}
+   */
   public String getBuildDir() {
     return buildDir;
   }
 
+  /**
+   * The build directory of the tests of the project, used for both finding
+   * classes to transform and output them once transformed.
+   *
+   * @return never {@code null}
+   */
   public String getTestBuildDir() {
     return testBuildDir;
   }

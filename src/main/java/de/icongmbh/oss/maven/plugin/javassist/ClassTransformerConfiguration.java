@@ -25,13 +25,15 @@ import org.apache.maven.plugins.annotations.Parameter;
  *
  * <pre>
  * {@code
- * 
+ *
  * <transformerClass>
- *  <className>com.domain.ToStringTransformer</className>
+ *  <className>
+ *    de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+ *  </className>
  *  <properties>
  *    <property>
- *      <name>append.value</name>
- *      <value> and ToStringTransformer</value>
+ *      <name>my.example.App#doSomthing</name>
+ *      <value>{ $2="injected value for sec. parameter"; $_ = $proceed($$); }</value>
  *    </property>
  *  </properties>
  * </transformerClass>
@@ -42,9 +44,40 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 public class ClassTransformerConfiguration {
 
+  /**
+   * The full qualified class name of the transformer implementation.
+   *
+   * <p>
+   * This class must be available via the plugin classloader.
+   * </p>
+   *
+   * <pre>
+   * {@code
+   *
+   *  <className>
+   *    de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+   *  </className>
+   * }
+   * </pre>
+   */
   @Parameter(property = "className", required = true)
   private String className;
 
+  /**
+   * Properties to configure the class transformer instance.
+   *
+   * <pre>
+   * {@code
+   *
+   *  <properties>
+   *    <property>
+   *      <name>my.example.App#doSomthing</name>
+   *      <value>{ $2="injected value for sec. parameter"; $_ = $proceed($$); }</value>
+   *    </property>
+   *  </properties>
+   * }
+   * </pre>
+   */
   @Parameter(property = "properties", required = false)
   private Properties properties;
 

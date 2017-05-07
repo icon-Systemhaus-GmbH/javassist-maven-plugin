@@ -31,7 +31,7 @@ import de.icongmbh.oss.maven.plugin.javassist.ClassTransformer;
 
 /**
  * Example of {@link ClassTransformer} implementation.
- * 
+ *
  * <p>
  * This example shows a full functional implementation of an {@link ClassTransformer}.
  * <br>
@@ -54,6 +54,9 @@ import de.icongmbh.oss.maven.plugin.javassist.ClassTransformer;
  * </transformerClass>
  * }
  * </pre>
+ *
+ * @see <a href="https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before">
+ *      https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before</a>
  *
  * @since 1.1.0
  */
@@ -93,10 +96,8 @@ public class MethodCallClassTransformer extends ClassTransformer {
    * <ul>
    * <li>name: full qualified class name and method name separated by '{@link #METHOD_TOKEN #}'
    * <li>value: Javassist statement - starts with '{@link #JAVASSIST_STATEMENT_START_TOKEN &#123;}'
-   * and
-   * ends with '{@link #JAVASSIST_STATEMENT_END_TOKEN &#125;}'
+   * and ends with '{@link #JAVASSIST_STATEMENT_END_TOKEN &#125;}'
    * </ul>
-   * e.g.
    *
    * <pre>
    * {@code
@@ -107,8 +108,8 @@ public class MethodCallClassTransformer extends ClassTransformer {
    * @param properties maybe {@code null}
    * @throws Exception provided by interface
    *
-   * @see <a href="https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before">https
-   *      ://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before</a>
+   * @see <a href="https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before">
+   *      https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before</a>
    */
   @Override
   public void configure(final Properties properties) throws Exception {

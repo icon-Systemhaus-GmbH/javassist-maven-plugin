@@ -65,8 +65,7 @@ public class ClassnameExtractor {
 
   /**
    * Iterate over the class files and remove the parent directory from file name and replace
-   * directory separator with
-   * dots.
+   * directory separator with dots.
    *
    * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
    * @param classFiles array to extract the names from. Must not be {@code null}.
@@ -84,8 +83,7 @@ public class ClassnameExtractor {
    * {@link Iterator#next()}.
    * <p>
    * It is possible that {@link Iterator#hasNext()} returns {@code true} and {@link Iterator#next()}
-   * returns
-   * {@code null}.
+   * returns {@code null}.
    * </p>
    *
    * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
@@ -149,6 +147,13 @@ public class ClassnameExtractor {
   }
 
   /**
+   * Wrapping the array of class file names and extract full qualified class name on
+   * {@link Iterator#next()}.
+   * <p>
+   * It is possible that {@link Iterator#hasNext()} returns <code>true</code> and
+   * {@link Iterator#next()} returns {@code null}.
+   * </p>
+   *
    * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
    * @param classFileList to extract the names from. Maybe {@code null}
    * @return list of full qualified class names based on passed classFiles or {@code null}
