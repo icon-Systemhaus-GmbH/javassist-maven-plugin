@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.icongmbh.oss.maven.plugin.javassist.it</groupId>
+  <artifactId>transform</artifactId>
+  <!-- This placeholder will be replaced by maven-invoker-plugin -->
+  <version>@project.version@</version>
+  <packaging>jar</packaging>
+
+  <name>compile and transform</name>
+  <description>
+    This integration test compiles a class and transforms this class via the configured
+    'de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer'.
+
+    The compiled class will be tested by a test class. This test class tests if the 'stamp' field
+    available and if the method return value is modified by transformation.
+  </description>
+
+  <properties>
+    <project.version>LATEST</project.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>de.icongmbh.oss.maven.plugins</groupId>
+      <artifactId>javassist-maven-plugin</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--TESTING -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>[4.11,5.0.0-SNAPSHOT)</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>de.icongmbh.oss.maven.plugins</groupId>
+        <artifactId>javassist-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <configuration>
+          <includeTestClasses>false</includeTestClasses>
+          <transformerClasses>
+            <transformerClass>
+              <className>
+                de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+              </className>
+              <properties>
+                <property>
+                  <name>de.icongmbh.oss.maven.plugin.javassist.it.transform.ProjectClass#toString</name>
+                  <!-- @see: http://www.csg.ci.i.u-tokyo.ac.jp/~chiba/javassist//tutorial/tutorial2.html -->
+                  <!-- escape the '$' with '$' for use with maven ;-) strange. The first '$' must not be escape -->
+                  <value>{ $_ = $$proceed($$$$); return "Modified by Javassist."; }</value>
+                </property>
+              </properties>
+            </transformerClass>
+          </transformerClasses>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>javassist</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

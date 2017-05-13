@@ -596,9 +596,9 @@
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
-          <projectsDirectory>src/it/resources</projectsDirectory>
+          <projectsDirectory>src/it</projectsDirectory>
           <localRepositoryPath>target/local-repo</localRepositoryPath>
-          <settingsFile>src/it/resources/settings.xml</settingsFile>
+          <settingsFile>src/it/settings.xml</settingsFile>
           <cloneProjectsTo>target/it/projects/</cloneProjectsTo>
           <cloneClean>true</cloneClean>
           <showErrors>true</showErrors>
@@ -608,7 +608,13 @@
             <id>integration-test</id>
             <goals>
               <goal>install</goal>
-              <goal>run</goal>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>verify</goal>
             </goals>
           </execution>
         </executions>
