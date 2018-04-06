@@ -93,7 +93,7 @@ h2. Known limitations
 
 h2. How to contribute?
 
-p. If you think this project is useful for you, them there's a huge chance it's useful to others, so please feel free
+p. If you think this project is useful for you, then there's a huge chance it's useful to others, so please feel free
 to fork, fix it, improve it and test it (the "Known limitations" above is a great way to start).
 
 h2. Documentation
