@@ -25,7 +25,7 @@ deploy:
 # https://docs.travis-ci.com/user/customizing-the-build
 install: mvn -B -V dependency:resolve-plugins dependency:go-offline
 script: mvn clean verify site
-after_failure: cat /home/travis/build/stephanenicolas/javassist-maven-plugin/src/it/resources/project1/build.log
+after_failure: cat /home/travis/build/icon-Systemhaus-GmbH/javassist-maven-plugin/target/it/projects/transform/build.log
 
 # only the last commit is required for now
 git:
