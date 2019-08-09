@@ -5,6 +5,9 @@
 sudo: false
 language: java
 
+# JDK7 is only available on precise
+dist: precise
+
 # https://docs.travis-ci.com/user/languages/java/
 jdk:
   - oraclejdk7
