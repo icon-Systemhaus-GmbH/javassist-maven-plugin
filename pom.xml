@@ -32,12 +32,19 @@
       </roles>
     </developer>
     <developer>
-      <id>barthel</id>
-      <url>https://github.com/barthel</url>
+      <id>croesch</id>
+      <url>https://github.com/croesch</url>
       <organization>icon Systemhaus GmbH</organization>
       <organizationUrl>http://www.icongmbh.de/</organizationUrl>
       <roles>
         <role>project lead</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>barthel</id>
+      <url>https://github.com/barthel</url>
+      <roles>
+        <role>contributor</role>
       </roles>
     </developer>
   </developers>
