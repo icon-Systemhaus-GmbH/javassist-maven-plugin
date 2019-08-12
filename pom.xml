@@ -108,7 +108,8 @@
     <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
     <maven-invoker-plugin.version>3.2.0</maven-invoker-plugin.version>
-    <plantuml-maven-plugin.version>7954</plantuml-maven-plugin.version>
+    <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
+    <plantuml.version>1.2019.7</plantuml.version>
     <animal-sniffer-maven-plugin.version>1.18</animal-sniffer-maven-plugin.version>
 
     <commons-io.version>2.6</commons-io.version>
@@ -642,6 +643,13 @@
       <plugin>
         <groupId>com.github.jeluard</groupId>
         <artifactId>plantuml-maven-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>net.sourceforge.plantuml</groupId>
+            <artifactId>plantuml</artifactId>
+            <version>${plantuml.version}</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <sourceFiles>
             <directory>${basedir}/src/main/plantuml</directory>
@@ -714,17 +722,17 @@
               <!-- required set of reports -->
               <report>index</report>
               <report>summary</report>
-              <report>project-team</report>
-              <report>license</report>
+              <report>team</report>
+              <report>licenses</report>
               <report>dependency-info</report>
               <report>scm</report>
               <!-- optional set of reports -->
-              <report>cim</report>
+              <report>ci-management</report>
               <report>dependency-management</report>
               <report>dependencies</report>
               <report>distribution-management</report>
-              <report>issue-tracking</report>
-              <report>mailing-list</report>
+              <report>issue-management</report>
+              <report>mailing-lists</report>
               <report>modules</report>
               <report>plugin-management</report>
               <report>plugins</report>
