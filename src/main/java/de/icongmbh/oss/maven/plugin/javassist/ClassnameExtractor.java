@@ -73,7 +73,7 @@ public class ClassnameExtractor {
    * @see #iterateClassnames(File, Iterator)
    */
   public static Iterator<String> iterateClassnames(final File parentDirectory,
-                                                   final File ... classFiles) {
+                                                   final File... classFiles) {
     return iterateClassnames(parentDirectory, Arrays.asList(classFiles).iterator());
   }
 
@@ -94,7 +94,7 @@ public class ClassnameExtractor {
   // DANGEROUS call by reference
   public static Iterator<String> iterateClassnames(final File parentDirectory,
                                                    final Iterator<File> classFileIterator) {
-    return new Iterator<String>(){
+    return new Iterator<String>() {
 
       @Override
       public boolean hasNext() {
@@ -161,7 +161,7 @@ public class ClassnameExtractor {
    * @see #extractClassNameFromFile(File, File)
    */
   public static List<String> listClassnames(final File parentDirectory,
-                                            final String ... classFileList) throws IOException {
+                                            final String... classFileList) throws IOException {
     if (null == classFileList || classFileList.length <= 0) {
       return Collections.emptyList();
     }

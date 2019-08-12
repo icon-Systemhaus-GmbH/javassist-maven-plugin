@@ -75,14 +75,12 @@
   </distributionManagement>
 
   <properties>
-    <!-- @see: https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml -->
-    <!-- For later checkstyle maven plugin version use 'google_checks.xml' instead of URL. -->
-    <checkstyle.config.location>https://raw.githubusercontent.com/checkstyle/checkstyle/f0326fd4c85c3779c47013d2800ef6daf28721b1/src/main/resources/google_checks.xml</checkstyle.config.location>
+    <checkstyle.config.location>google_checks.xml</checkstyle.config.location>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <temporary.file.directory>${project.build.directory}</temporary.file.directory>
 
     <maven.version>3.6.1</maven.version>
-    <maven-checkstyle-plugin.version>2.15</maven-checkstyle-plugin.version>
+    <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
     <java.compiler.version>1.8</java.compiler.version>
 
     <maven-plugin-api.version>${maven.version}</maven-plugin-api.version>
@@ -91,41 +89,41 @@
     <maven-compat.version>${maven.version}</maven-compat.version>
     <maven-artifact.version>${maven.version}</maven-artifact.version>
 
-    <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-    <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
-    <maven-plugin-annotations.version>3.5</maven-plugin-annotations.version>
-    <maven-site-plugin.version>3.7</maven-site-plugin.version>
-    <maven-fluido-skin.version>1.6</maven-fluido-skin.version>
-    <maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
-    <maven-surefire-report-plugin.version>2.20</maven-surefire-report-plugin.version>
+    <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    <maven-plugin-annotations.version>3.6.0</maven-plugin-annotations.version>
+    <maven-site-plugin.version>3.8.2</maven-site-plugin.version>
+    <maven-fluido-skin.version>1.8</maven-fluido-skin.version>
+    <maven-project-info-reports-plugin.version>3.0.0</maven-project-info-reports-plugin.version>
+    <maven-surefire-report-plugin.version>3.0.0-M3</maven-surefire-report-plugin.version>
     <maven-plugin-tools-javadoc.version>3.5</maven-plugin-tools-javadoc.version>
-    <doxia-module-markdown.version>1.7</doxia-module-markdown.version>
+    <doxia-module-markdown.version>1.9</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
-    <plexus-utils.version>3.0.24</plexus-utils.version>
-    <plexus-archiver.version>3.4</plexus-archiver.version>
-    <plexus-classworlds.version>2.5.2</plexus-classworlds.version>
-    <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+    <plexus-utils.version>3.2.1</plexus-utils.version>
+    <plexus-archiver.version>4.1.0</plexus-archiver.version>
+    <plexus-classworlds.version>2.6.0</plexus-classworlds.version>
+    <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-    <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
-    <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
-    <maven-invoker-plugin.version>2.0.0</maven-invoker-plugin.version>
-    <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
-    <animal-sniffer-maven-plugin.version>1.15</animal-sniffer-maven-plugin.version>
+    <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
+    <maven-invoker-plugin.version>3.2.0</maven-invoker-plugin.version>
+    <plantuml-maven-plugin.version>7954</plantuml-maven-plugin.version>
+    <animal-sniffer-maven-plugin.version>1.18</animal-sniffer-maven-plugin.version>
 
-    <commons-io.version>2.5</commons-io.version>
-    <slf4j-api.version>1.7.20</slf4j-api.version>
-    <slf4j-simple.version>1.7.20</slf4j-simple.version>
+    <commons-io.version>2.6</commons-io.version>
+    <slf4j-api.version>2.0.0-alpha0</slf4j-api.version>
+    <slf4j-simple.version>2.0.0-alpha0</slf4j-simple.version>
     <java18.version>1.0</java18.version>
 
     <javassist.version>3.18.1-GA</javassist.version>
     <javassist-build-plugin-api.version>1.0.0</javassist-build-plugin-api.version>
 
-    <junit.version>4.12</junit.version>
-    <easymock.version>3.4</easymock.version>
+    <junit.version>4.13-beta-3</junit.version>
+    <easymock.version>4.0.2</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
-    <plexus-interpolation.version>1.24</plexus-interpolation.version>
-    <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
+    <plexus-interpolation.version>1.26</plexus-interpolation.version>
+    <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -533,8 +531,9 @@
           <!-- Ignores the import (group) order and creepy HTML paragraph handling. -->
           <violationIgnore>CustomImportOrder,JavadocParagraph</violationIgnore>
           <violationSeverity>warning</violationSeverity>
-          <!-- @see: https://stackoverflow.com/questions/2362652/excluding-classes-in-maven-checkstyle-plugin-reports -->
-          <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+          </sourceDirectories>
           <excludes>**/generated-sources/**/*</excludes>
         </configuration>
         <executions>

@@ -72,7 +72,7 @@ public class JavassistTransformerExecutor {
    *
    * @throws NullPointerException if passed {@code transformerInstances} is {@code null}
    */
-  public void setTransformerClasses(final IClassTransformer ... transformerInstances) {
+  public void setTransformerClasses(final IClassTransformer... transformerInstances) {
     this.transformerInstances = transformerInstances.clone();
   }
 

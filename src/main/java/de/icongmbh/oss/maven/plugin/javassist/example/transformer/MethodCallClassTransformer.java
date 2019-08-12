@@ -91,7 +91,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
 
   /**
    * <p>
-   * {@link Properties} entries like:
+   * {@link Properties} entries like the following.
    * </p>
    * <ul>
    * <li>name: full qualified class name and method name separated by '{@link #METHOD_TOKEN #}'
@@ -127,7 +127,7 @@ public class MethodCallClassTransformer extends ClassTransformer {
       return;
     }
     try {
-      classToTransform.instrument(new ExprEditor(){
+      classToTransform.instrument(new ExprEditor() {
         @Override
         public void edit(final MethodCall method) throws CannotCompileException {
           final String statement = getStatement(method.getClassName(), method.getMethodName());

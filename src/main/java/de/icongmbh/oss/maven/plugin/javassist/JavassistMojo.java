@@ -278,8 +278,8 @@ public class JavassistMojo extends AbstractMojo {
   // @formatter:off
   protected IClassTransformer[] instantiateTransformerClasses(
           final ClassLoader contextClassLoader,
-          final ClassTransformerConfiguration ... transformerClasses) throws Exception {
-  // @formatter:on
+          final ClassTransformerConfiguration... transformerClasses) throws Exception {
+    // @formatter:on
     if (null == transformerClasses || transformerClasses.length <= 0) {
       throw new MojoExecutionException("Invalid transformer classes passed");
     }
@@ -315,7 +315,7 @@ public class JavassistMojo extends AbstractMojo {
                                                                        InstantiationException,
                                                                        IllegalAccessException,
                                                                        MojoExecutionException {
-  // @formatter:on
+    // @formatter:on
     if (null == transformerClass || null == transformerClass.getClassName()
         || transformerClass.getClassName().trim().isEmpty()) {
       throw new MojoExecutionException("Invalid transformer class name passed");
