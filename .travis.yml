@@ -5,12 +5,17 @@
 sudo: false
 language: java
 
-# JDK7 is only available on precise
-dist: precise
+# JDK8 is available on xenial
+dist: xenial
 
 # https://docs.travis-ci.com/user/languages/java/
 jdk:
-  - oraclejdk7
+  - openjdk8
+#  - openjdk10
+#  - openjdk11
+#  - openjdk12
+#  - oraclejdk11
+#  - oraclejdk12
 
 # https://docs.travis-ci.com/user/deployment/pages/
 # deploy Maven site only from master
@@ -25,7 +30,7 @@ deploy:
 # https://docs.travis-ci.com/user/customizing-the-build
 install: mvn -B -V dependency:resolve-plugins dependency:go-offline
 script: mvn clean verify site
-after_failure: cat /home/travis/build/icon-Systemhaus-GmbH/javassist-maven-plugin/target/it/projects/transform/build.log
+after_failure: tail -n 500 /home/travis/build/icon-Systemhaus-GmbH/javassist-maven-plugin/target/it/projects/transform/build.log
 
 # only the last commit is required for now
 git:
