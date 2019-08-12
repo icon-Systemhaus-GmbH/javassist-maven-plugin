@@ -15,12 +15,12 @@
 
   <name>Javassist Maven Plugin</name>
   <description>A maven plugin based on Javassist to manipulate bytecode of project classes at post-compile time.</description>
-  <url>http://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin</url>
+  <url>https://github.com/icon-Systemhaus-GmbH/javassist-maven-plugin</url>
   <inceptionYear>2013</inceptionYear>
   <licenses>
     <license>
       <name>Apache 2</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
   </licenses>
 
@@ -35,7 +35,7 @@
       <id>croesch</id>
       <url>https://github.com/croesch</url>
       <organization>icon Systemhaus GmbH</organization>
-      <organizationUrl>http://www.icongmbh.de/</organizationUrl>
+      <organizationUrl>https://www.icongmbh.de/</organizationUrl>
       <roles>
         <role>project lead</role>
       </roles>
