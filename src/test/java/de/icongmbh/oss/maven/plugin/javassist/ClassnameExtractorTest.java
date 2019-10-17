@@ -22,22 +22,22 @@ public class ClassnameExtractorTest {
 
     // when
     String className = ClassnameExtractor.extractClassNameFromFile(new File("/foo"),
-        new File("/foo/bar/MyClass.class"));
+                                                                   new File("/foo/bar/MyClass.class"));
 
     // then
     assertEquals("bar.MyClass", className);
   }
 
   @Test
-  public void testIterateClassnames() throws IOException {
+  public void testIterateClassnames() {
     // given
 
     // when
     Iterator<String> classNameIterator = ClassnameExtractor
-        .iterateClassnames(new File("/foo"),
-            new ArrayList<File>(Arrays.asList(new File[]{new File("/foo/bar/MyClass.class"),
-          new File("/foo/bar2/MyClass2.class")}))
-                .iterator());
+      .iterateClassnames(new File("/foo"),
+                         new ArrayList<>(Arrays.asList(new File("/foo/bar/MyClass.class"),
+                                                       new File("/foo/bar2/MyClass2.class")))
+                           .iterator());
 
     // then
     assertNotNull(classNameIterator);
@@ -56,9 +56,9 @@ public class ClassnameExtractorTest {
 
     // when
     List<String> classNameList = ClassnameExtractor
-        .listClassnames(new File("/foo"),
-            Arrays
-                .asList(new File[]{new File("/foo/bar/MyClass.class"), new File("/foo/bar2/MyClass2.class")}));
+      .listClassnames(new File("/foo"),
+                      Arrays.asList(new File("/foo/bar/MyClass.class"),
+                                    new File("/foo/bar2/MyClass2.class")));
 
     // then
     assertNotNull(classNameList);

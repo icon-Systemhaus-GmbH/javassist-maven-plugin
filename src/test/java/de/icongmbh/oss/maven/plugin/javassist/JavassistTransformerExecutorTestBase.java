@@ -26,14 +26,16 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.startsWith;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.rules.ExpectedException.none;
 
+import javax.tools.JavaCompiler;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -41,7 +43,6 @@ import javassist.CtField;
 import javassist.LoaderClassPath;
 import javassist.NotFoundException;
 import javassist.bytecode.ClassFile;
-import javax.tools.JavaCompiler;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,7 +80,7 @@ public abstract class JavassistTransformerExecutorTestBase {
     if (null == classPool) {
       javassistTransformerExecutor = new JavassistTransformerExecutor();
     } else {
-      javassistTransformerExecutor = new JavassistTransformerExecutor(){
+      javassistTransformerExecutor = new JavassistTransformerExecutor() {
         @Override
         protected ClassPool buildClassPool() {
           return classPool;
@@ -99,7 +100,6 @@ public abstract class JavassistTransformerExecutorTestBase {
     return transformedClassDirectory;
   }
 
-  @SuppressWarnings("unchecked")
   protected Iterator<String> classNames(final String className) {
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     expect(classNames.hasNext()).andReturn(true).times(2);
@@ -131,8 +131,8 @@ public abstract class JavassistTransformerExecutorTestBase {
   }
 
   protected CtClass stampedClass(final String className, final CtClass ctClass)
-                                                                                throws CannotCompileException,
-                                                                                NotFoundException {
+    throws CannotCompileException,
+           NotFoundException {
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
     // real stamping
     expect(ctClass.isInterface()).andReturn(false);
@@ -147,17 +147,20 @@ public abstract class JavassistTransformerExecutorTestBase {
   protected String oneTestClass() throws IOException {
     final String packageName = "test";
     final String className = "OneTest";
-    final StringBuilder source = new StringBuilder().append("package ").append(packageName)
-      .append(";").append("public class ").append(className).append(" { ").append("  static { ")
-      .append("    System.out.println(\"hello\"); ").append("  }").append("  public ")
-      .append(className).append("() { ").append("    System.out.println(\"world\"); ")
-      .append("  } ").append("}");
 
-    compileSourceFiles(writeSourceFile(className, source.toString()));
+    final String source = "package " + packageName + ";"
+      + "public class " + className + " { "
+      + "  static { " +
+      "    System.out.println(\"hello\"); "
+      + "  }"
+      + "  public " + className + "() { "
+      + "    System.out.println(\"world\"); " +
+      "  } " + "}";
+    compileSourceFiles(writeSourceFile(className, source));
     // source file, compiled class
-    assertThat("2 classes in classes directory",
-               FileUtils.listFiles(classDirectory(), null, true).size(),
-               is(2));
+    assertEquals("2 classes in classes directory",
+                 2,
+                 FileUtils.listFiles(classDirectory(), null, true).size());
     return packageName + '.' + className;
   }
 
@@ -166,36 +169,39 @@ public abstract class JavassistTransformerExecutorTestBase {
     final String packageName = "test";
     final String className = "WithInnerTest";
     final String innerClassName = "InnerClass";
-    final StringBuilder source = new StringBuilder().append("package ").append(packageName)
-      .append(";").append("public class ").append(className).append(" { ").append("  static { ")
-      .append("    System.out.println(\"hello\"); ").append("  }").append("  public ")
-      .append(className).append("() { ").append("    System.out.println(\"world\"); ")
-      .append("  } ").append("  class ").append(innerClassName).append(" {").append("  }")
-      .append("}");
 
-    compileSourceFiles(writeSourceFile(className, source.toString()));
+    final String source = "package " + packageName + ";"
+      + "public class " + className + " { "
+      + "  static { " +
+      "    System.out.println(\"hello\"); "
+      + "  }"
+      + "public " + className + "() { "
+      + "    System.out.println(\"world\"); " +
+      "  } "
+      + "  class " + innerClassName + " {" + "  }" +
+      "}";
+    compileSourceFiles(writeSourceFile(className, source));
     // source file, compiled class and compiled inner class
-    assertThat("3 classes in classes directory",
-               FileUtils.listFiles(classDirectory(), null, true).size(),
-               is(3));
+    assertEquals("3 classes in classes directory",
+                 3,
+                 FileUtils.listFiles(classDirectory(), null, true).size());
     return new String[] {packageName + '.' + className,
-                         packageName + '.' + className + '$' + innerClassName};
+      packageName + '.' + className + '$' + innerClassName};
   }
 
-  private void compileSourceFiles(File ... sourceFiles) {
+  private void compileSourceFiles(File... sourceFiles) {
     // Compile source files
     JavaCompiler compiler = getSystemJavaCompiler();
     for (File sourceFile : sourceFiles) {
-      assertThat(compiler.run(null, out, err, sourceFile.getPath()), is(0));
+      assertEquals(0, compiler.run(null, out, err, sourceFile.getPath()));
     }
   }
 
   private File writeSourceFile(final String className, final String sources) throws IOException {
     // Save source in .java file.
     final File sourceFile = new File(classDirectory(), "test/" + className + ".java");
-    assertThat("create sorce directory incl. package structure",
-               sourceFile.getParentFile().mkdirs(),
-               is(true));
+    assertTrue("create sorce directory incl. package structure",
+               sourceFile.getParentFile().mkdirs());
     new FileWriter(sourceFile).append(sources).close();
     return sourceFile;
   }

@@ -1,13 +1,6 @@
 
 package de.icongmbh.oss.maven.plugin.javassist;
 
-import static org.junit.Assert.assertEquals;
-
-import javassist.CtClass;
-import javassist.build.IClassTransformer;
-
-import org.easymock.Capture;
-
 import static org.easymock.Capture.newInstance;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -15,23 +8,23 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
+import javassist.CtClass;
+import javassist.build.IClassTransformer;
 import org.apache.commons.io.FileUtils;
+import org.easymock.Capture;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests the main steps in transformation work flow in
- * {@link JavassistTransformerExecutor#execute() } .
- *
+ * Tests the main steps in transformation work flow in {@link JavassistTransformerExecutor#execute()}.
+ * <p>
  * The source files are fresh compiled and don't transform before, so there is no stamp in it.
- *
- * @throws Exception
  */
 public class TestJavassistTransformerExecutor_TransformerClasses_handling
-        extends JavassistTransformerExecutorTestBase {
+  extends JavassistTransformerExecutorTestBase {
 
   private JavassistTransformerExecutor sut;
 
@@ -41,12 +34,11 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
   }
 
   @Test
-  public void throw_NullPointerException_if_set_null_for_TransformerClasses_array() throws Exception {
+  public void throw_NullPointerException_if_set_null_for_TransformerClasses_array() {
     // given
-    expectedExceptionRule.expect(NullPointerException.class);
 
     // when
-    sut.setTransformerClasses((IClassTransformer[])null);
+    assertThrows(NullPointerException.class, () -> sut.setTransformerClasses((IClassTransformer[]) null));
 
     // then
 
@@ -56,18 +48,18 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
   public void not_throw_any_Exception_with_empty_TransformerClasses_array() throws Exception {
     // given
     withInnerClass();
-    assertThat("transformed class directory is empty before transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty before transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
     // when
-    sut.setTransformerClasses(new IClassTransformer[0]);
+    sut.setTransformerClasses();
     sut.execute();
 
     // then
-    assertThat("transformed class directory is empty after transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty after transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
   }
 
@@ -75,18 +67,18 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
   public void not_throw_any_Exception_with_null_element_in_TransformerClasses_array() throws Exception {
     // given
     withInnerClass();
-    assertThat("transformed class directory is empty before transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty before transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
     // when
     sut.setTransformerClasses(new IClassTransformer[] {null});
     sut.execute();
 
     // then
-    assertThat("transformed class directory is empty after transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty after transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
   }
 
@@ -94,17 +86,17 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
   public void not_throw_any_Exception_without_TransformerClasses() throws Exception {
     // given
     withInnerClass();
-    assertThat("transformed class directory is empty before transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty before transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
     // when
     sut.execute();
 
     // then
-    assertThat("transformed class directory is empty after transformation",
-               FileUtils.listFiles(transformedClassDirectory(), null, true).size(),
-               is(0));
+    assertEquals("transformed class directory is empty after transformation",
+                 0,
+                 FileUtils.listFiles(transformedClassDirectory(), null, true).size());
 
   }
 

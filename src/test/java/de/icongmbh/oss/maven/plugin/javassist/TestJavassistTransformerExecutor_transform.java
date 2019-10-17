@@ -2,43 +2,38 @@
 package de.icongmbh.oss.maven.plugin.javassist;
 
 import static de.icongmbh.oss.maven.plugin.javassist.JavassistTransformerExecutor.STAMP_FIELD_NAME;
-
-import javassist.build.IClassTransformer;
-
-import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.resetToNice;
+import static org.easymock.EasyMock.same;
+import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.core.Is.is;
 
+import java.io.IOException;
 import java.util.Iterator;
+
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.NotFoundException;
-
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.resetToNice;
-import static org.easymock.EasyMock.same;
-import static org.easymock.EasyMock.startsWith;
-import static org.hamcrest.core.Is.is;
-
-import java.io.IOException;
-import javassist.CannotCompileException;
+import javassist.build.IClassTransformer;
 import javassist.build.JavassistBuildException;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests the main steps in
- * {@link JavassistTransformerExecutor#transform(IClassTransformer, String, String, Iterator) }.
- *
+ * Tests the main steps in {@link JavassistTransformerExecutor#transform(IClassTransformer, String, String, Iterator)
+ * }.
+ * <p>
  * The source files are fresh compiled and don't transform before, so there is no stamp in it.
- *
- * @throws Exception
  */
 public class TestJavassistTransformerExecutor_transform
-        extends JavassistTransformerExecutorTestBase {
+  extends JavassistTransformerExecutorTestBase {
 
   private ClassPool classPool;
 
@@ -62,8 +57,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void do_nothing_if_transformer_is_null() throws Exception {
+  public void do_nothing_if_transformer_is_null() {
     // given
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     replay(classNames, this.classPool, this.classTransformer);
@@ -80,8 +74,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void do_nothing_if_inputDir_is_null() throws Exception {
+  public void do_nothing_if_inputDir_is_null() {
     // given
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     replay(classNames, this.classPool, this.classTransformer);
@@ -98,8 +91,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void do_nothing_if_inputDir_is_empty() throws Exception {
+  public void do_nothing_if_inputDir_is_empty() {
     // given
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     replay(classNames, this.classPool, this.classTransformer);
@@ -116,7 +108,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  public void do_nothing_if_classNames_is_null() throws Exception {
+  public void do_nothing_if_classNames_is_null() {
     // given
     replay(this.classPool, this.classTransformer);
 
@@ -131,8 +123,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
-  public void do_nothing_if_classNames_not_hasNext() throws Exception {
+  public void do_nothing_if_classNames_not_hasNext() {
     // given
     final Iterator<String> classNames = mock("classNames", Iterator.class);
     expect(classNames.hasNext()).andReturn(false);
@@ -149,7 +140,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  public void do_nothing_if_classNames_hasNext_but_next_returns_null() throws Exception {
+  public void do_nothing_if_classNames_hasNext_but_next_returns_null() {
     // given
     resetToNice(this.classPool);
     final Iterator<String> classNames = classNames(null);
@@ -166,7 +157,6 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void append_required_classPathes_on_classPool() throws Exception {
     // given
     final Iterator<String> classNames = mock("classNames", Iterator.class);
@@ -187,7 +177,6 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void throw_RuntimeException_if_internal_NotFoundException_was_catched() throws Exception {
     // given
     final NotFoundException internalException = new NotFoundException("expected exception");
@@ -320,7 +309,6 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void continue_transform_with_next_class_if_internal_JavassistBuildException_was_catched_on_applyTransformations() throws Exception {
     // given
     final String className = oneTestClass();
@@ -351,7 +339,6 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void continue_transform_with_next_class_if_internal_IOException_was_catched_on_writeFile() throws Exception {
     // given
     final String className = oneTestClass();
@@ -384,7 +371,6 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void continue_transform_with_next_class_if_internal_CannotCompileException_was_catched_on_writeFile() throws Exception {
     // given
     final String className = oneTestClass();
@@ -496,7 +482,7 @@ public class TestJavassistTransformerExecutor_transform
   }
 
   private CtClass stampedClass(final String className) throws CannotCompileException,
-                                                       NotFoundException {
+                                                              NotFoundException {
     final CtClass candidateClass = super.stampedClass(className,
                                                       initializeClass(mock("candidateClass",
                                                                            CtClass.class)));

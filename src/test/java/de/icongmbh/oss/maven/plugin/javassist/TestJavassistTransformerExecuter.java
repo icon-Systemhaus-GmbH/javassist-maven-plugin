@@ -33,17 +33,20 @@ import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNull.notNullValue;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.hamcrest.core.IsSame.sameInstance;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+
 import javassist.CannotCompileException;
 import javassist.ClassPath;
 import javassist.ClassPool;
@@ -78,87 +81,83 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
   @Test
   public void outputDirectory_null() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getOutputDirectory(), nullValue());
+    assertNull(sut.getOutputDirectory());
     sut.setOutputDirectory(null);
-    assertThat(sut.getOutputDirectory(), nullValue());
+    assertNull(sut.getOutputDirectory());
   }
 
   @Test
   public void outputDirectory_empty() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getOutputDirectory(), nullValue());
+    assertNull(sut.getOutputDirectory());
     sut.setOutputDirectory("   ");
-    assertThat(sut.getOutputDirectory(), equalTo("   "));
+    assertEquals("   ", sut.getOutputDirectory());
   }
 
   @Test
   public void outputDirectory() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getOutputDirectory(), nullValue());
+    assertNull(sut.getOutputDirectory());
     sut.setOutputDirectory(transformedClassDirectory().getAbsolutePath());
-    assertThat(sut.getOutputDirectory(), equalTo(transformedClassDirectory().getAbsolutePath()));
+    assertEquals(transformedClassDirectory().getAbsolutePath(), sut.getOutputDirectory());
   }
 
   @Test
   public void inputDirectory_null() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getInputDirectory(), nullValue());
+    assertNull(sut.getInputDirectory());
     sut.setInputDirectory(null);
-    assertThat(sut.getInputDirectory(), nullValue());
+    assertNull(sut.getInputDirectory());
   }
 
   @Test
   public void inputDirectory_empty() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getInputDirectory(), nullValue());
+    assertNull(sut.getInputDirectory());
     sut.setInputDirectory("   ");
-    assertThat(sut.getInputDirectory(), equalTo("   "));
+    assertEquals("   ", sut.getInputDirectory());
   }
 
   @Test
   public void inputDirectory() {
     sut = new JavassistTransformerExecutor();
-    assertThat(sut.getInputDirectory(), nullValue());
+    assertNull(sut.getInputDirectory());
     sut.setInputDirectory(classDirectory().getAbsolutePath());
-    assertThat(sut.getInputDirectory(), equalTo(classDirectory().getAbsolutePath()));
+    assertEquals(classDirectory().getAbsolutePath(), sut.getInputDirectory());
   }
 
   @Test
   public void evaluateOutputDirectory_throws_NullPointer_if_both_directories_are_null() {
-    expectedExceptionRule.expect(NullPointerException.class);
-
-    sut.evaluateOutputDirectory(null, null);
+    assertThrows(NullPointerException.class, () -> sut.evaluateOutputDirectory(null, null));
   }
 
   @Test
   public void evaluateOutputDirectory_returns_inputDir_if_null() {
-    assertThat(sut.evaluateOutputDirectory(null, classDirectory().getAbsolutePath()),
-               equalTo(classDirectory().getAbsolutePath()));
+    assertEquals(classDirectory().getAbsolutePath(),
+                 sut.evaluateOutputDirectory(null, classDirectory().getAbsolutePath()));
   }
 
   @Test
   public void evaluateOutputDirectory_returns_inputDir_if_empty() {
-    assertThat(sut.evaluateOutputDirectory("   ", classDirectory().getAbsolutePath()),
-               equalTo(classDirectory().getAbsolutePath()));
+    assertEquals(classDirectory().getAbsolutePath(),
+                 sut.evaluateOutputDirectory("   ", classDirectory().getAbsolutePath()));
   }
 
   @Test
   public void evaluateOutputDirectory() {
-    assertThat(sut.evaluateOutputDirectory(transformedClassDirectory().getAbsolutePath(),
-                                           classDirectory().getAbsolutePath()),
-               equalTo(transformedClassDirectory().getAbsolutePath()));
+    assertEquals(transformedClassDirectory().getAbsolutePath(),
+                 sut.evaluateOutputDirectory(transformedClassDirectory().getAbsolutePath(),
+                                             classDirectory().getAbsolutePath()));
   }
 
   @Test
   public void buildClassPool() {
-    assertThat(sut.buildClassPool(), notNullValue());
+    assertNotNull(sut.buildClassPool());
   }
 
   @Test
-  public void configureClassPool_throws_NullPointer_if_classPool_is_null() throws NotFoundException {
-    expectedExceptionRule.expect(NullPointerException.class);
-
-    sut.configureClassPool(null, classDirectory().getAbsolutePath());
+  public void configureClassPool_throws_NullPointer_if_classPool_is_null() {
+    assertThrows(NullPointerException.class, () -> sut.configureClassPool(null, classDirectory().getAbsolutePath()));
   }
 
   @Test
@@ -172,8 +171,8 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(classPool);
     // when
-    assertThat(sut.configureClassPool(classPool, classDirectory().getAbsolutePath()),
-               sameInstance(classPool));
+    assertSame(classPool,
+               sut.configureClassPool(classPool, classDirectory().getAbsolutePath()));
 
     // then
     verify(classPool);
@@ -181,25 +180,23 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
   @Test
   public void iterateClassnames_throws_NullPointerException_if_directory_is_null() {
-    expectedExceptionRule.expect(NullPointerException.class);
-
-    sut.iterateClassnames(null);
+    assertThrows(NullPointerException.class, () -> sut.iterateClassnames(null));
   }
 
   @Test
   public void iterateClassnames_should_return_two_of_three_files() throws IOException {
     // given
     final List<String> expectedClassNames = asList(withInnerClass()); // 2x *.class, 1x
-                                                                      // *.java
-    assertThat("3 classes in classes directory",
-               listFiles(classDirectory(), null, true).size(),
-               is(3));
+    // *.java
+    assertEquals("3 classes in classes directory",
+                 3,
+                 listFiles(classDirectory(), null, true).size());
 
     // when
     final Iterator<String> classnames = sut.iterateClassnames(classDirectory().getAbsolutePath());
 
     // then
-    assertThat(classnames, notNullValue());
+    assertNotNull(classnames);
     while (classnames.hasNext()) {
       assertThat("iterated class name is expected", expectedClassNames, hasItem(classnames.next()));
     }
@@ -214,7 +211,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andThrow(internalException);
     replay(ctClass);
     // when
-    assertThat(sut.hasStamp(ctClass), is(false));
+    assertFalse(sut.hasStamp(ctClass));
 
     // then
     verify(ctClass);
@@ -228,7 +225,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
     replay(ctClass);
     // when
-    assertThat(sut.hasStamp(ctClass), is(false));
+    assertFalse(sut.hasStamp(ctClass));
 
     // then
     verify(ctClass);
@@ -242,20 +239,18 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(mock(CtField.class));
     replay(ctClass);
     // when
-    assertThat(sut.hasStamp(ctClass), is(true));
+    assertTrue(sut.hasStamp(ctClass));
 
     // then
     verify(ctClass);
   }
 
   @Test
-  public void applyStamp_throws_NullPointer_if_candidateClass_is_null() throws NotFoundException,
-                                                                        CannotCompileException {
+  public void applyStamp_throws_NullPointer_if_candidateClass_is_null() {
     // given
-    expectedExceptionRule.expect(NullPointerException.class);
 
     // when
-    sut.applyStamp(null);
+    assertThrows(NullPointerException.class, () -> sut.applyStamp(null));
 
     // then
   }
@@ -287,12 +282,12 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
                fieldCaptures.getValue().getName(),
                org.hamcrest.core.StringStartsWith
                  .startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME));
-    assertThat("generated stamp field must have the right modifiers.",
-               fieldCaptures.getValue().getModifiers(),
-               is(STATIC | FINAL | PUBLIC));
-    assertThat("generated stamp field is a boolean.",
-               fieldCaptures.getValue().getType(),
-               is(booleanType));
+    assertEquals("generated stamp field must have the right modifiers.",
+                 STATIC | FINAL | PUBLIC,
+                 fieldCaptures.getValue().getModifiers());
+    assertEquals("generated stamp field is a boolean.",
+                 booleanType,
+                 fieldCaptures.getValue().getType());
   }
 
   @Test
@@ -322,17 +317,17 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
                fieldCaptures.getValue().getName(),
                org.hamcrest.core.StringStartsWith
                  .startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME));
-    assertThat("generated stamp field must have the right modifiers.",
-               fieldCaptures.getValue().getModifiers(),
-               is(STATIC | FINAL | PRIVATE));
-    assertThat("generated stamp field is a boolean.",
-               fieldCaptures.getValue().getType(),
-               is(booleanType));
+    assertEquals("generated stamp field must have the right modifiers.",
+                 STATIC | FINAL | PRIVATE,
+                 fieldCaptures.getValue().getModifiers());
+    assertEquals("generated stamp field is a boolean.",
+                 booleanType,
+                 fieldCaptures.getValue().getType());
   }
 
   @Test
   public void removeStamp_ignores_internal_NotFoundException() throws CannotCompileException,
-                                                               NotFoundException {
+                                                                      NotFoundException {
     // given
     final String className = "test.TestClass";
     final NotFoundException internalException = new NotFoundException("expected exception");
@@ -360,12 +355,12 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
                fieldCaptures.getValue().getName(),
                org.hamcrest.core.StringStartsWith
                  .startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME));
-    assertThat("generated stamp field must have the right modifiers.",
-               fieldCaptures.getValue().getModifiers(),
-               is(STATIC | FINAL | PRIVATE));
-    assertThat("generated stamp field is a boolean.",
-               fieldCaptures.getValue().getType(),
-               is(booleanType));
+    assertEquals("generated stamp field must have the right modifiers.",
+                 STATIC | FINAL | PRIVATE,
+                 fieldCaptures.getValue().getModifiers());
+    assertEquals("generated stamp field is a boolean.",
+                 booleanType,
+                 fieldCaptures.getValue().getType());
   }
 
   @Test
@@ -395,12 +390,12 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
                fieldCaptures.getValue().getName(),
                org.hamcrest.core.StringStartsWith
                  .startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME));
-    assertThat("generated stamp field must have the right modifiers.",
-               fieldCaptures.getValue().getModifiers(),
-               is(STATIC | FINAL | PRIVATE));
-    assertThat("generated stamp field is a boolean.",
-               fieldCaptures.getValue().getType(),
-               is(booleanType));
+    assertEquals("generated stamp field must have the right modifiers.",
+                 STATIC | FINAL | PRIVATE,
+                 fieldCaptures.getValue().getModifiers());
+    assertEquals("generated stamp field is a boolean.",
+                 booleanType,
+                 fieldCaptures.getValue().getType());
   }
 
   @Test
@@ -430,11 +425,11 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
                fieldCaptures.getValue().getName(),
                org.hamcrest.core.StringStartsWith
                  .startsWith(JavassistTransformerExecutor.STAMP_FIELD_NAME));
-    assertThat("generated stamp field must have the right modifiers.",
-               fieldCaptures.getValue().getModifiers(),
-               is(STATIC | FINAL | PUBLIC));
-    assertThat("generated stamp field is a boolean.",
-               fieldCaptures.getValue().getType(),
-               is(booleanType));
+    assertEquals("generated stamp field must have the right modifiers.",
+                 STATIC | FINAL | PUBLIC,
+                 fieldCaptures.getValue().getModifiers());
+    assertEquals("generated stamp field is a boolean.",
+                 booleanType,
+                 fieldCaptures.getValue().getType());
   }
 }
