@@ -283,15 +283,8 @@ public class JavassistTransformerExecutor {
           LOGGER.warn("Class {} could not be resolved due to dependencies not found on "
                       + "current classpath (usually your class depends on \"provided\""
                       + " scoped dependencies).", className);
-        } catch (final IOException ex) { // EOFException ...
-          LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
-                       className,
-                       ex);
-        } catch (final CannotCompileException ex) {
-          LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
-                       className,
-                       ex);
-        } catch (final JavassistBuildException ex) {
+        } catch (final IOException | CannotCompileException | JavassistBuildException ex) {
+          // EOFException → IOException...
           LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
                        className,
                        ex);
