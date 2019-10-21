@@ -106,32 +106,32 @@
     <maven-plugin-tools-javadoc.version>3.5</maven-plugin-tools-javadoc.version>
     <doxia-module-markdown.version>1.9</doxia-module-markdown.version>
     <wagon-gitsite.version>0.3.1</wagon-gitsite.version>
-    <plexus-utils.version>3.2.1</plexus-utils.version>
-    <plexus-archiver.version>4.1.0</plexus-archiver.version>
+    <plexus-utils.version>3.3.0</plexus-utils.version>
+    <plexus-archiver.version>4.2.0</plexus-archiver.version>
     <plexus-classworlds.version>2.6.0</plexus-classworlds.version>
     <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
     <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
-    <maven-invoker-plugin.version>3.2.0</maven-invoker-plugin.version>
+    <maven-invoker-plugin.version>3.2.1</maven-invoker-plugin.version>
     <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
-    <plantuml.version>1.2019.7</plantuml.version>
+    <plantuml.version>1.2019.11</plantuml.version>
     <animal-sniffer-maven-plugin.version>1.18</animal-sniffer-maven-plugin.version>
 
     <commons-io.version>2.6</commons-io.version>
-    <slf4j-api.version>2.0.0-alpha0</slf4j-api.version>
-    <slf4j-simple.version>2.0.0-alpha0</slf4j-simple.version>
+    <slf4j-api.version>2.0.0-alpha1</slf4j-api.version>
+    <slf4j-simple.version>2.0.0-alpha1</slf4j-simple.version>
     <java18.version>1.0</java18.version>
 
-    <javassist.version>3.18.1-GA</javassist.version>
+    <javassist.version>3.26.0-GA</javassist.version>
     <javassist-build-plugin-api.version>1.0.0</javassist-build-plugin-api.version>
 
     <junit.version>4.13-beta-3</junit.version>
     <easymock.version>4.0.2</easymock.version>
     <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
     <plexus-interpolation.version>1.26</plexus-interpolation.version>
-    <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
