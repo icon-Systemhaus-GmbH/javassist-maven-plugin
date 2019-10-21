@@ -44,7 +44,7 @@
       <id>barthel</id>
       <url>https://github.com/barthel</url>
       <roles>
-        <role>contributor</role>
+          <role>former project lead</role>
       </roles>
     </developer>
   </developers>
@@ -438,6 +438,7 @@
           <version>${maven-surefire-plugin.version}</version>
         </plugin>
         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-invoker-plugin</artifactId>
           <version>${maven-invoker-plugin.version}</version>
         </plugin>
@@ -558,7 +559,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <encoding>${encoding}</encoding>
           <source>${java.compiler.version}</source>
           <target>${java.compiler.version}</target>
           <showDeprecation>true</showDeprecation>
@@ -599,6 +599,7 @@
       </plugin>
       <!-- Invokes the integration tests. -->
       <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
         <configuration>
           <projectsDirectory>src/it</projectsDirectory>
@@ -717,7 +718,6 @@
         <version>${maven-project-info-reports-plugin.version}</version>
         <configuration>
           <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
           <lineLength>100</lineLength>
           <showAvatarImages>true</showAvatarImages>
         </configuration>
@@ -768,7 +768,6 @@
         <artifactId>maven-surefire-report-plugin</artifactId>
         <version>${maven-surefire-report-plugin.version}</version>
         <configuration>
-          <encoding>${encoding}</encoding>
           <reportsDirectories>
             <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
           </reportsDirectories>
@@ -801,6 +800,7 @@
         <version>${maven-checkstyle-plugin.version}</version>
       </plugin>
       <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-invoker-plugin</artifactId>
         <version>${maven-invoker-plugin.version}</version>
       </plugin>
