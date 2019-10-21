@@ -11,6 +11,9 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import de.icongmbh.oss.maven.plugin.javassist.stubs.Sub1TransformerStub;
+import de.icongmbh.oss.maven.plugin.javassist.stubs.Sub2TransformerStub;
+import de.icongmbh.oss.maven.plugin.javassist.stubs.TransformerStub;
 import javassist.CtClass;
 import javassist.build.IClassTransformer;
 import org.apache.commons.io.FileUtils;
@@ -124,6 +127,29 @@ public class TestJavassistTransformerExecutor_TransformerClasses_handling
     verify(mockTransformer);
     assertEquals(className, classCapture_shouldTransform.getValue().getName());
     assertEquals(className, classCapture_applyTransformations.getValue().getName());
+  }
+
+  @Test
+  public void applyTransformation_Of_All_Transformers_When_Using_Input_As_Output_Directory() throws Exception {
+    // given
+
+    sut.setOutputDirectory(sut.getInputDirectory());
+
+    final String className = oneTestClass();
+
+    final TransformerStub transformer1 = new Sub1TransformerStub();
+    final TransformerStub transformer2 = new Sub2TransformerStub();
+
+    sut.setTransformerClasses(transformer1, transformer2);
+
+    // when
+    sut.execute();
+
+    // then
+    assertEquals(1, transformer1.getTransformed().size());
+    assertEquals(1, transformer2.getTransformed().size());
+    assertEquals(className, transformer1.getTransformed().get(0).getName());
+    assertEquals(className, transformer2.getTransformed().get(0).getName());
   }
 
   @Test

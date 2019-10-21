@@ -27,6 +27,7 @@ import static org.apache.commons.io.FileUtils.listFiles;
 import static org.easymock.Capture.newInstance;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
@@ -53,6 +54,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.NotFoundException;
+import javassist.build.IClassTransformer;
 import javassist.bytecode.ClassFile;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -67,6 +69,8 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
   private ClassPool classPool;
 
   private JavassistTransformerExecutor sut;
+  private final IClassTransformer transformer = createMock("mockTransformer",
+                                                           IClassTransformer.class);
 
   @Before
   public void setUp_ClassPool() {
@@ -211,7 +215,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andThrow(internalException);
     replay(ctClass);
     // when
-    assertFalse(sut.hasStamp(ctClass));
+    assertFalse(sut.hasStamp(transformer, ctClass));
 
     // then
     verify(ctClass);
@@ -225,7 +229,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(null);
     replay(ctClass);
     // when
-    assertFalse(sut.hasStamp(ctClass));
+    assertFalse(sut.hasStamp(transformer, ctClass));
 
     // then
     verify(ctClass);
@@ -239,7 +243,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     expect(ctClass.getDeclaredField(startsWith(STAMP_FIELD_NAME))).andReturn(mock(CtField.class));
     replay(ctClass);
     // when
-    assertTrue(sut.hasStamp(ctClass));
+    assertTrue(sut.hasStamp(transformer, ctClass));
 
     // then
     verify(ctClass);
@@ -250,7 +254,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
     // given
 
     // when
-    assertThrows(NullPointerException.class, () -> sut.applyStamp(null));
+    assertThrows(NullPointerException.class, () -> sut.applyStamp(transformer, null));
 
     // then
   }
@@ -274,7 +278,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(candidateClass, classPool);
     // when
-    sut.applyStamp(candidateClass);
+    sut.applyStamp(transformer, candidateClass);
 
     // then
     verify(candidateClass, classPool);
@@ -309,7 +313,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(candidateClass, classPool);
     // when
-    sut.applyStamp(candidateClass);
+    sut.applyStamp(transformer, candidateClass);
 
     // then
     verify(candidateClass, classPool);
@@ -347,7 +351,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(candidateClass, classPool);
     // when
-    sut.removeStamp(candidateClass);
+    sut.removeStamp(transformer, candidateClass);
 
     // then
     verify(candidateClass, classPool);
@@ -382,7 +386,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(candidateClass, classPool);
     // when
-    sut.removeStamp(candidateClass);
+    sut.removeStamp(transformer, candidateClass);
 
     // then
     verify(candidateClass, classPool);
@@ -417,7 +421,7 @@ public class TestJavassistTransformerExecuter extends JavassistTransformerExecut
 
     replay(candidateClass, classPool);
     // when
-    sut.removeStamp(candidateClass);
+    sut.removeStamp(transformer, candidateClass);
 
     // then
     verify(candidateClass, classPool);

@@ -22,24 +22,23 @@ import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtField.Initializer;
+import javassist.LoaderClassPath;
+import javassist.NotFoundException;
+import javassist.build.IClassTransformer;
+import javassist.build.JavassistBuildException;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.ClassFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.LoaderClassPath;
-import javassist.NotFoundException;
-import javassist.CtField.Initializer;
-import javassist.build.IClassTransformer;
-import javassist.build.JavassistBuildException;
-import javassist.bytecode.AccessFlag;
-import javassist.bytecode.ClassFile;
 
 /**
  * Executor to perform the transformation by a list of {@link IClassTransformer} instances.
@@ -136,8 +135,8 @@ public class JavassistTransformerExecutor {
    * Execute transformation with passed {@link IClassTransformer}.
    *
    * <p>
-   * This method uses {@link #getInputDirectory() } and {@link #getOutputDirectory() } and calls
-   * {@link #transform(IClassTransformer, String, String)}.
+   * This method uses {@link #getInputDirectory() } and {@link #getOutputDirectory() } and calls {@link
+   * #transform(IClassTransformer, String, String)}.
    * </p>
    * <p>
    * If the passed {@code transformer} is {@code null} nothing will transformed.
@@ -154,16 +153,15 @@ public class JavassistTransformerExecutor {
   }
 
   /**
-   * Search for class files on the passed directory name ({@link #iterateClassnames(String)}) and
-   * apply transformation to each one (
-   * {@link #transform(IClassTransformer, String, String, Iterator)}).
+   * Search for class files on the passed directory name ({@link #iterateClassnames(String)}) and apply transformation
+   * to each one ( {@link #transform(IClassTransformer, String, String, Iterator)}).
    *
    * <p>
    * <strong>Limitation:</strong> do not search inside .jar files.
    * </p>
    * <p>
-   * If the passed {@code transformer} is {@code null} or the passed {@code directory} is
-   * {@code null} or empty nothing will transformed.
+   * If the passed {@code transformer} is {@code null} or the passed {@code directory} is {@code null} or empty nothing
+   * will transformed.
    * </p>
    *
    * @param transformer the transformer that will apply transformations could be {@code null}.
@@ -171,26 +169,23 @@ public class JavassistTransformerExecutor {
    *
    * @see #iterateClassnames(String)
    * @see #transform(IClassTransformer, String, String, Iterator)
-   *
    */
   public final void transform(final IClassTransformer transformer, final String directory) {
     transform(transformer, directory, directory, iterateClassnames(directory));
   }
 
   /**
-   * Search for class files on the passed input directory ({@link #iterateClassnames(String)}) and
-   * apply transformation to each one (
-   * {@link #transform(IClassTransformer, String, String, Iterator)}).
+   * Search for class files on the passed input directory ({@link #iterateClassnames(String)}) and apply transformation
+   * to each one ( {@link #transform(IClassTransformer, String, String, Iterator)}).
    * <p>
    * <strong>Limitation:</strong> do not search inside .jar files.
    * </p>
    *
    * @param transformer The transformer that will apply transformations could be {@code null}.
-   * @param inputDir The root directory where the classes to transform will selected from could
-   *          be {@code null} or empty. If it is {@code null} or empty nothing will be transformed.
-   * @param outputDir The output directory where the transformed classes will stored could be
-   *          {@code null} or empty. If it is {@code null} or empty the {@code inputDir} will be
-   *          used.
+   * @param inputDir The root directory where the classes to transform will selected from could be {@code null} or
+   * empty. If it is {@code null} or empty nothing will be transformed.
+   * @param outputDir The output directory where the transformed classes will stored could be {@code null} or empty. If
+   * it is {@code null} or empty the {@code inputDir} will be used.
    *
    * @see #iterateClassnames(String)
    * @see #transform(IClassTransformer, String, String, Iterator)
@@ -204,25 +199,22 @@ public class JavassistTransformerExecutor {
   /**
    * Transform each class passed via {@link Iterator} of class names.
    * <p>
-   * Use the passed {@code className} iterator, load each one as {@link CtClass}, filter the valid
-   * candidates and apply transformation to each one.
+   * Use the passed {@code className} iterator, load each one as {@link CtClass}, filter the valid candidates and apply
+   * transformation to each one.
    * </p>
    * <p>
    * <strong>Limitation:</strong> do not search inside .jar files.
    * </p>
    * <p>
-   * Any unexpected (internal catched) {@link Exception} will be re-thrown in an
-   * {@link RuntimeException}.
+   * Any unexpected (internal catched) {@link Exception} will be re-thrown in an {@link RuntimeException}.
    * </p>
    *
    * @param transformer The transformer that will apply transformations could be {@code null}.
-   * @param inputDir The root directory where the classes to transform will selected from could
-   *          be {@code null} or empty. If it is {@code null} or empty nothing will be transformed.
-   * @param outputDir The output directory where the transformed classes will stored could be
-   *          {@code null} or empty. If it is {@code null} or empty the {@code inputDir} will be
-   *          used.
-   * @param classNames could be {@code null} or empty. If it is {@code null} or empty nothing will
-   *          be transformed.
+   * @param inputDir The root directory where the classes to transform will selected from could be {@code null} or
+   * empty. If it is {@code null} or empty nothing will be transformed.
+   * @param outputDir The output directory where the transformed classes will stored could be {@code null} or empty. If
+   * it is {@code null} or empty the {@code inputDir} will be used.
+   * @param classNames could be {@code null} or empty. If it is {@code null} or empty nothing will be transformed.
    *
    * @see #initializeClass(ClassPool, CtClass)
    * @see IClassTransformer#shouldTransform(CtClass)
@@ -256,17 +248,17 @@ public class JavassistTransformerExecutor {
           classPool.importPackage(className);
           final CtClass candidateClass = classPool.get(className);
           initializeClass(classPool, candidateClass);
-          if (!hasStamp(candidateClass) && transformer.shouldTransform(candidateClass)) {
+          if (!hasStamp(transformer, candidateClass) && transformer.shouldTransform(candidateClass)) {
             transformer.applyTransformations(candidateClass);
-            applyStamp(candidateClass);
+            applyStamp(transformer, candidateClass);
             // #48
             for (final CtClass nestedClass : candidateClass.getNestedClasses()) {
-              if (!nestedClass.isModified() || hasStamp(nestedClass)) {
+              if (!nestedClass.isModified() || hasStamp(transformer, nestedClass)) {
                 continue;
               }
               final CtClass nestedCtClass = classPool.get(nestedClass.getName());
               initializeClass(classPool, nestedCtClass);
-              applyStamp(nestedCtClass);
+              applyStamp(transformer, nestedCtClass);
               nestedCtClass.writeFile(outDirectory);
             }
             candidateClass.writeFile(outDirectory);
@@ -275,8 +267,8 @@ public class JavassistTransformerExecutor {
           }
         } catch (final NotFoundException e) {
           LOGGER.warn("Class {} could not be resolved due to dependencies not found on "
-                      + "current classpath (usually your class depends on \"provided\""
-                      + " scoped dependencies).", className);
+                        + "current classpath (usually your class depends on \"provided\""
+                        + " scoped dependencies).", className);
         } catch (final IOException ex) { // EOFException ...
           LOGGER.error("Class {} could not be instrumented due to initialize FAILED.",
                        className,
@@ -301,8 +293,8 @@ public class JavassistTransformerExecutor {
    * Evaluates and returns the output directory.
    *
    * <p>
-   * If the passed {@code outputDir} is {@code null} or empty, the passed {@code inputDir} otherwise
-   * the {@code outputDir} will returned.
+   * If the passed {@code outputDir} is {@code null} or empty, the passed {@code inputDir} otherwise the {@code
+   * outputDir} will returned.
    *
    * @param outputDir could be {@code null} or empty
    * @param inputDir must not be {@code null}
@@ -310,7 +302,6 @@ public class JavassistTransformerExecutor {
    * @return never {@code null}
    *
    * @throws NullPointerException if passed {@code inputDir} is {@code null}
-   *
    * @since 1.2.0
    */
   protected String evaluateOutputDirectory(final String outputDir, final String inputDir) {
@@ -337,10 +328,9 @@ public class JavassistTransformerExecutor {
    *
    * @return never {@code null}
    *
-   * @throws NotFoundException if passed {@code classPool} is {@code null} or if passed
-   *           {@code inputDir} is a JAR or ZIP and not found.
+   * @throws NotFoundException if passed {@code classPool} is {@code null} or if passed {@code inputDir} is a JAR or ZIP
+   * and not found.
    * @throws NullPointerException if passed {@code inputDir} is {@code null}
-   *
    * @since 1.2.0
    */
   protected ClassPool configureClassPool(final ClassPool classPool,
@@ -360,10 +350,10 @@ public class JavassistTransformerExecutor {
    * </p>
    *
    * @param directory must nor be {@code null}
+   *
    * @return iterator of full qualified class names and never {@code null}
    *
    * @throws NullPointerException if passed {@code directory} is {@code null}.
-   *
    * @see SuffixFileFilter
    * @see TrueFileFilter
    * @see FileUtils#iterateFiles(File, IOFileFilter, IOFileFilter)
@@ -381,40 +371,42 @@ public class JavassistTransformerExecutor {
   /**
    * Apply a "stamp" to a class to indicate it has been modified.
    * <p>
-   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any
-   * class overriding this method should also override {@link #hasStamp(CtClass)}.
+   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any class overriding
+   * this method should also override {@link #hasStamp(IClassTransformer, CtClass)}.
    * </p>
    *
+   * @param transformer The transformer that will apply transformations must not be {@code null}.
    * @param candidateClass the class to mark/stamp must not be {@code null}.
    *
    * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
    * @throws CannotCompileException by {@link CtClass#addField(CtField, CtField.Initializer)}
-   *
-   * @see #createStampField(CtClass)
+   * @see #createStampField(IClassTransformer, CtClass)
    * @see CtClass#addField(CtField, CtField.Initializer)
+   * @since 2.0.0
    */
-  protected void applyStamp(CtClass candidateClass) throws CannotCompileException {
-    candidateClass.addField(createStampField(candidateClass), Initializer.constant(true));
+  protected void applyStamp(IClassTransformer transformer, CtClass candidateClass) throws CannotCompileException {
+    candidateClass.addField(createStampField(transformer, candidateClass), Initializer.constant(true));
   }
 
   /**
    * Remove a "stamp" from a class if the "stamp" field is available.
    * <p>
-   * By default, this method removes a boolean field named {@value #STAMP_FIELD_NAME}. Any class
-   * overriding this method should also override {@link #hasStamp(CtClass)}.
+   * By default, this method removes a boolean field named {@value #STAMP_FIELD_NAME}. Any class overriding this method
+   * should also override {@link #hasStamp(IClassTransformer, CtClass)}.
    * </p>
    *
+   * @param transformer The transformer that will apply transformations must not be {@code null}.
    * @param candidateClass the class to remove the mark/stamp from must not be {@code null}
    *
    * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
    * @throws CannotCompileException by {@link CtClass#removeField(CtField)}
-   *
-   * @see #createStampField(CtClass)
+   * @see #createStampField(IClassTransformer, CtClass)
    * @see CtClass#removeField(CtField)
+   * @since 2.0.0
    */
-  protected void removeStamp(CtClass candidateClass) throws CannotCompileException {
+  protected void removeStamp(IClassTransformer transformer, CtClass candidateClass) throws CannotCompileException {
     try {
-      candidateClass.removeField(createStampField(candidateClass));
+      candidateClass.removeField(createStampField(transformer, candidateClass));
     } catch (final NotFoundException e) {
       // ignore; mission accomplished.
     }
@@ -423,28 +415,30 @@ public class JavassistTransformerExecutor {
   /**
    * Indicates whether a class holds a stamp or not.
    * <p>
-   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any
-   * class overriding this method should also override {@link #applyStamp(CtClass)} and
-   * {@link #removeStamp(CtClass) }.
+   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any class overriding
+   * this method should also override {@link #applyStamp(IClassTransformer, CtClass)} and {@link
+   * #removeStamp(IClassTransformer, CtClass) }.
    * </p>
    *
+   * @param transformer The transformer that will apply transformations must not be {@code null}.
    * @param candidateClass the class to check must not be {@code null}.
    *
    * @return {@code true} if the class owns the stamp, otherwise {@code false}.
    *
    * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
    * @see CtClass#getDeclaredField(String)
+   * @since 2.0.0
    */
-  protected boolean hasStamp(CtClass candidateClass) {
+  protected boolean hasStamp(final IClassTransformer transformer, CtClass candidateClass) {
     boolean hasStamp;
     try {
-      hasStamp = null != candidateClass.getDeclaredField(createStampFieldName());
+      hasStamp = null != candidateClass.getDeclaredField(createStampFieldName(transformer));
     } catch (NotFoundException e) {
       hasStamp = false;
     }
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Stamp {}{} found in class {}",
-                   createStampFieldName(),
+                   createStampFieldName(transformer),
                    (hasStamp ? "" : " NOT"),
                    candidateClass.getName());
     }
@@ -454,29 +448,31 @@ public class JavassistTransformerExecutor {
   /**
    * Creates the name of the stamp field.
    * <p>
-   * This implementation appends {@value #STAMP_FIELD_NAME} with the full qualified class name and
-   * replaces all non-word characters (like '.') with '_'.
+   * This implementation appends {@value #STAMP_FIELD_NAME} with the full qualified class name and replaces all non-word
+   * characters (like '.') with '_'.
    * </p>
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code null}.
    *
    * @return never {@code null} or empty.
    */
-  private String createStampFieldName() {
-    return STAMP_FIELD_NAME + getClass().getName().replaceAll("\\W", "_");
+  private String createStampFieldName(final IClassTransformer transformer) {
+    return STAMP_FIELD_NAME + transformer.getClass().getName().replaceAll("\\W", "_");
   }
 
   /**
    * Creates a {@link CtField} instance associated with the passed {@code candidateClass}.
    *
+   * @param transformer The transformer that will apply transformations must not be {@code null}.
    * @param candidateClass must not be {@code null}
    *
    * @return never {@code null}
    *
    * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
    * @throws CannotCompileException field could not created
-   *
    * @see CtField
    */
-  private CtField createStampField(final CtClass candidateClass) throws CannotCompileException {
+  private CtField createStampField(IClassTransformer transformer, final CtClass candidateClass) throws CannotCompileException {
     int stampModifiers = AccessFlag.STATIC | AccessFlag.FINAL;
     if (!candidateClass.isInterface()) {
       stampModifiers |= AccessFlag.PRIVATE;
@@ -484,7 +480,7 @@ public class JavassistTransformerExecutor {
       stampModifiers |= AccessFlag.PUBLIC;
     }
     final CtField stampField = new CtField(CtClass.booleanType,
-                                           createStampFieldName(),
+                                           createStampFieldName(transformer),
                                            candidateClass);
     stampField.setModifiers(stampModifiers);
     return stampField;
@@ -523,7 +519,7 @@ public class JavassistTransformerExecutor {
     while (classLoader != null) {
       LOGGER.debug(" -- {}: {}", classLoader.getClass().getName(), classLoader.toString());
       if (classLoader instanceof URLClassLoader) {
-        LOGGER.debug(" --- urls: {}", Arrays.deepToString(((URLClassLoader)classLoader).getURLs()));
+        LOGGER.debug(" --- urls: {}", Arrays.deepToString(((URLClassLoader) classLoader).getURLs()));
       }
       classLoader = classLoader.getParent();
     }
