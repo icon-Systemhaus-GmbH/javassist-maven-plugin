@@ -12,7 +12,7 @@ bc..
     <plugin>
         <groupId>de.icongmbh.oss.maven.plugins</groupId>
         <artifactId>javassist-maven-plugin</artifactId>
-        <version>1.1.0</version>
+        <version>2.0.0</version>
         <configuration>
             <includeTestClasses>false</includeTestClasses>
             <transformerClasses>
@@ -45,44 +45,49 @@ bc..
  */
 public class ToStringTransformer extends ClassTransformer {
 
-    private static final String = APPEND_VALUE_PROPERTY_KEY = "append.value"; 
+  private static final String APPEND_VALUE_PROPERTY_KEY = "append.value";
 
-    private String appendValue;
+  private String appendValue;
 
-    /**
-     * We'll only transform subtypes of MyInterface.
-     */
-    @Override
-    protected boolean filter(CtClass candidateClass) throws Exception {
-        CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
-        return !candidateClass.equals(myInterface) && candidateClass.subtypeOf(myInterface);
+  /**
+   * We'll only transform subtypes of MyInterface.
+   */
+  @Override public boolean shouldTransform(final CtClass candidateClass)
+          throws JavassistBuildException {
+    CtClass myInterface = ClassPool.getDefault().get(MyInterface.class.getName());
+    try {
+      return !candidateClass.equals(myInterface) && candidateClass.subtypeOf(myInterface);
+    } catch (NotFoundException e) {
+      throw new JavassistBuildException(e);
     }
+  }
 
-    /**
-     * Hack the toString() method.
-     */
-    @Override
-    protected void applyTransformations(CtClass classToTransform) throws Exception {
-        // Actually you must test if it exists, but it's just an example...
-        CtMethod toStringMethod = classToTransform.getDeclaredMethod("toString");
-        classToTransform.removeMethod(toStringMethod);
+  /**
+   * Hack the toString() method.
+   */
+  @Override public void applyTransformations(CtClass classToTransform)
+          throws JavassistBuildException {
+    try {
+      // Actually you must test if it exists, but it's just an example...
+      CtMethod toStringMethod = classToTransform.getDeclaredMethod("toString");
+      classToTransform.removeMethod(toStringMethod);
 
-        CtMethod hackedToStringMethod = CtNewMethod.make(
-                "public String toString() { return \"toString() hacked by Javassist"+(this.appendValue != null ? this.appendValue:"")+"\"; }",
-                classToTransform);
-        classToTransform.addMethod(hackedToStringMethod);
+      CtMethod hackedToStringMethod = CtNewMethod
+              .make("public String toString() { return \"toString() hacked by Javassist" + (
+                            this.appendValue != null ? this.appendValue : "") + "\"; }",
+                    classToTransform);
+      classToTransform.addMethod(hackedToStringMethod);
+    } catch (CannotCompileException | NotFoundException e) {
+      throw new JavassistBuildException(e);
     }
+  }
 
-    /**
-     * 
-     */
-    @Override
-    protected void configure(final Properties properties) {
-        if( null == properties ) {
-            return;
-        }
-        this.appendValue = properties.getProperty(APPEND_VALUE_PROPERTY_KEY);
+  @Override public void configure(final Properties properties) {
+    if (null == properties) {
+      return;
     }
+    this.appendValue = properties.getProperty(APPEND_VALUE_PROPERTY_KEY);
+  }
 }
 
 h2. Known limitations
