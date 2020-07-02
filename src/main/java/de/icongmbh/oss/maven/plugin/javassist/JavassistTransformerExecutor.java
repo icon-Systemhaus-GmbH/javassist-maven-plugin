@@ -276,7 +276,7 @@ public class JavassistTransformerExecutor {
               nestedCtClass.writeFile(outDirectory);
             }
             candidateClass.writeFile(outDirectory);
-            LOGGER.debug("Class {} instrumented by {}", className, getClass().getName());
+            LOGGER.debug("Class {} instrumented by {}", className, getName(transformer));
             ++classCounter;
           }
         } catch (final NotFoundException e) {
@@ -290,7 +290,7 @@ public class JavassistTransformerExecutor {
                        ex);
         }
       }
-      LOGGER.info("#{} classes instrumented by {}", classCounter, getClass().getName());
+      LOGGER.info("#{} classes instrumented by {}", classCounter, getName(transformer));
     } catch (final NotFoundException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
@@ -510,6 +510,10 @@ public class JavassistTransformerExecutor {
     // TODO hack to initialize class to avoid further NotFoundException (what's the right way of
     // doing this?)
     candidateClass.subtypeOf(classPool.get(Object.class.getName()));
+  }
+
+  private String getName(IClassTransformer transformer) {
+    return transformer.getClass().getName();
   }
 
   private void debugClassFile(final ClassFile classFile) {
