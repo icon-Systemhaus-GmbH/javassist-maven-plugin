@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 import javassist.CannotCompileException;
@@ -368,6 +369,9 @@ public class JavassistTransformerExecutor {
    */
   protected Iterator<String> iterateClassnames(final String directory) {
     final File dir = new File(directory);
+    if (!dir.exists()) {
+      return Collections.emptyIterator();
+    }
     final String[] extensions = {".class"};
     final IOFileFilter fileFilter = new SuffixFileFilter(extensions);
     final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;

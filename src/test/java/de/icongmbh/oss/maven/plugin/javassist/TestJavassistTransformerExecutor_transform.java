@@ -13,6 +13,7 @@ import static org.easymock.EasyMock.startsWith;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.core.Is.is;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -105,6 +106,20 @@ public class TestJavassistTransformerExecutor_transform
     // then
     verify(classNames, this.classPool, this.classTransformer);
 
+  }
+
+  @Test
+  public void do_nothing_if_inputDir_not_exist() {
+    // given
+    replay(this.classPool, this.classTransformer);
+
+    // when
+    sut.transform(this.classTransformer,
+                  new File(classDirectory(), "not-exist").getPath(),
+                  transformedClassDirectory().getAbsolutePath());
+
+    // then
+    verify(this.classPool, this.classTransformer);
   }
 
   @Test
