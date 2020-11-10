@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JavassistTransformerExecutor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Javassist Maven Plugin</a> &gt; <a href="index.source.html" class="el_package">de.icongmbh.oss.maven.plugin.javassist</a> &gt; <span class="el_source">JavassistTransformerExecutor.java</span></div><h1>JavassistTransformerExecutor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013 https://github.com/barthel
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.icongmbh.oss.maven.plugin.javassist;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtField.Initializer;
+import javassist.LoaderClassPath;
+import javassist.NotFoundException;
+import javassist.build.IClassTransformer;
+import javassist.build.JavassistBuildException;
+import javassist.bytecode.AccessFlag;
+import javassist.bytecode.ClassFile;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Executor to perform the transformation by a list of {@link IClassTransformer} instances.
+ *
+ * @since 1.1.0
+ */
+public class JavassistTransformerExecutor {
+
+  /**
+   * Stamp field name prefix.
+   */
+  static final String STAMP_FIELD_NAME = &quot;__TRANSFORMED_BY_JAVASSIST_MAVEN_PLUGIN__&quot;;
+
+<span class="fc" id="L56">  private IClassTransformer[] transformerInstances = new IClassTransformer[0];</span>
+
+  private String inputDirectory;
+
+  private String outputDirectory;
+
+<span class="fc" id="L62">  private static final Logger LOGGER = LoggerFactory.getLogger(JavassistTransformerExecutor.class);</span>
+
+  public JavassistTransformerExecutor() {
+<span class="fc" id="L65">    super();</span>
+<span class="fc" id="L66">  }</span>
+
+  /**
+   * Configure class transformer instances for use with this executor.
+   *
+   * @param transformerInstances must not be {@code null}
+   *
+   * @throws NullPointerException if passed {@code transformerInstances} is {@code null}
+   */
+  public void setTransformerClasses(final IClassTransformer... transformerInstances) {
+<span class="fc" id="L76">    this.transformerInstances = transformerInstances.clone();</span>
+<span class="fc" id="L77">  }</span>
+
+  /**
+   * Sets the output directory where the transformed classes will stored.
+   * &lt;p&gt;
+   * The configured input directory will used if this directory is {@code null} or empty.
+   * &lt;/p&gt;
+   *
+   * @param outputDirectory could be {@code null} or empty.
+   *
+   * @see #setInputDirectory(String)
+   */
+  public void setOutputDirectory(final String outputDirectory) {
+<span class="fc" id="L90">    this.outputDirectory = outputDirectory;</span>
+<span class="fc" id="L91">  }</span>
+
+  /**
+   * Returns the output directory where the transformed classes will stored.
+   *
+   * @return maybe {@code null} or empty
+   */
+  protected String getOutputDirectory() {
+<span class="fc" id="L99">    return outputDirectory;</span>
+  }
+
+  /**
+   * Sets the input directory where the classes to transform will selected from.
+   * &lt;p&gt;
+   * Nothing will transformed if this directory is {@code null} or empty.
+   * &lt;/p&gt;
+   *
+   * @param inputDirectory could be {@code null} or empty.
+   */
+  public void setInputDirectory(final String inputDirectory) {
+<span class="fc" id="L111">    this.inputDirectory = inputDirectory;</span>
+<span class="fc" id="L112">  }</span>
+
+  /**
+   * Returns the input directory where the the classes to transform will selected from.
+   *
+   * @return maybe {@code null} or empty
+   */
+  protected String getInputDirectory() {
+<span class="fc" id="L120">    return inputDirectory;</span>
+  }
+
+  /**
+   * Executes all configured {@link IClassTransformer}.
+   *
+   * @see #setTransformerClasses(IClassTransformer...)
+   * @see #execute(IClassTransformer)
+   */
+  public void execute() {
+<span class="fc bfc" id="L130" title="All 2 branches covered.">    for (final IClassTransformer transformer : transformerInstances) {</span>
+<span class="fc" id="L131">      execute(transformer);</span>
+    }
+<span class="fc" id="L133">  }</span>
+
+  /**
+   * Execute transformation with passed {@link IClassTransformer}.
+   *
+   * &lt;p&gt;
+   * This method uses {@link #getInputDirectory() } and {@link #getOutputDirectory() } and calls
+   * {@link #transform(IClassTransformer, String, String)}.
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * If the passed {@code transformer} is {@code null} nothing will transformed.
+   * &lt;/p&gt;
+   *
+   * @param transformer the transformer that will apply transformations could be {@code
+   *         null}.
+   *
+   * @see #getInputDirectory()
+   * @see #getOutputDirectory()
+   * @see #transform(IClassTransformer, String, String)
+   */
+  protected void execute(final IClassTransformer transformer) {
+<span class="fc" id="L154">    transform(transformer, getInputDirectory(), getOutputDirectory());</span>
+<span class="fc" id="L155">  }</span>
+
+  /**
+   * Search for class files on the passed directory name ({@link #iterateClassnames(String)}) and
+   * apply transformation to each one ( {@link #transform(IClassTransformer, String, String,
+   * Iterator)}).
+   *
+   * &lt;p&gt;
+   * &lt;strong&gt;Limitation:&lt;/strong&gt; do not search inside .jar files.
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * If the passed {@code transformer} is {@code null} or the passed {@code directory} is {@code
+   * null} or empty nothing will transformed.
+   * &lt;/p&gt;
+   *
+   * @param transformer the transformer that will apply transformations could be {@code
+   *         null}.
+   * @param directory could be {@code null} or empty. The input and output directory are the
+   *         same.
+   *
+   * @see #iterateClassnames(String)
+   * @see #transform(IClassTransformer, String, String, Iterator)
+   */
+  public final void transform(final IClassTransformer transformer, final String directory) {
+<span class="fc" id="L179">    transform(transformer, directory, directory, iterateClassnames(directory));</span>
+<span class="fc" id="L180">  }</span>
+
+  /**
+   * Search for class files on the passed input directory ({@link #iterateClassnames(String)}) and
+   * apply transformation to each one ( {@link #transform(IClassTransformer, String, String,
+   * Iterator)}).
+   * &lt;p&gt;
+   * &lt;strong&gt;Limitation:&lt;/strong&gt; do not search inside .jar files.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations could be {@code
+   *         null}.
+   * @param inputDir The root directory where the classes to transform will selected from
+   *         could be {@code null} or empty. If it is {@code null} or empty nothing will be
+   *         transformed.
+   * @param outputDir The output directory where the transformed classes will stored could
+   *         be {@code null} or empty. If it is {@code null} or empty the {@code inputDir} will be
+   *         used.
+   *
+   * @see #iterateClassnames(String)
+   * @see #transform(IClassTransformer, String, String, Iterator)
+   */
+  public void transform(final IClassTransformer transformer,
+                        final String inputDir,
+                        final String outputDir) {
+<span class="fc" id="L205">    transform(transformer, inputDir, outputDir, iterateClassnames(inputDir));</span>
+<span class="fc" id="L206">  }</span>
+
+  /**
+   * Transform each class passed via {@link Iterator} of class names.
+   * &lt;p&gt;
+   * Use the passed {@code className} iterator, load each one as {@link CtClass}, filter the valid
+   * candidates and apply transformation to each one.
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * &lt;strong&gt;Limitation:&lt;/strong&gt; do not search inside .jar files.
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * Any unexpected (internal catched) {@link Exception} will be re-thrown in an {@link
+   * RuntimeException}.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations could be {@code
+   *         null}.
+   * @param inputDir The root directory where the classes to transform will selected from
+   *         could be {@code null} or empty. If it is {@code null} or empty nothing will be
+   *         transformed.
+   * @param outputDir The output directory where the transformed classes will stored could
+   *         be {@code null} or empty. If it is {@code null} or empty the {@code inputDir} will be
+   *         used.
+   * @param classNames could be {@code null} or empty. If it is {@code null} or empty
+   *         nothing will be transformed.
+   *
+   * @see #initializeClass(ClassPool, CtClass)
+   * @see IClassTransformer#shouldTransform(CtClass)
+   * @see IClassTransformer#applyTransformations(CtClass)
+   */
+  public final void transform(final IClassTransformer transformer,
+                              final String inputDir,
+                              final String outputDir,
+                              final Iterator&lt;String&gt; classNames) {
+<span class="fc bfc" id="L241" title="All 2 branches covered.">    if (null == transformer) {</span>
+<span class="fc" id="L242">      return;</span>
+    }
+<span class="fc bfc" id="L244" title="All 4 branches covered.">    if (null == inputDir || inputDir.trim().isEmpty()) {</span>
+<span class="fc" id="L245">      return;</span>
+    }
+<span class="fc bfc" id="L247" title="All 4 branches covered.">    if (null == classNames || !classNames.hasNext()) {</span>
+<span class="fc" id="L248">      return;</span>
+    }
+<span class="fc" id="L250">    final String inDirectory = inputDir.trim();</span>
+    try {
+<span class="fc" id="L252">      final ClassPool classPool = configureClassPool(buildClassPool(), inDirectory);</span>
+<span class="fc" id="L253">      final String outDirectory = evaluateOutputDirectory(outputDir, inDirectory);</span>
+<span class="fc" id="L254">      int classCounter = 0;</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">      while (classNames.hasNext()) {</span>
+<span class="fc" id="L256">        final String className = classNames.next();</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">        if (null == className) {</span>
+<span class="fc" id="L258">          continue;</span>
+        }
+        try {
+<span class="fc" id="L261">          LOGGER.debug(&quot;Got class name {}&quot;, className);</span>
+<span class="fc" id="L262">          classPool.importPackage(className);</span>
+<span class="fc" id="L263">          final CtClass candidateClass = classPool.get(className);</span>
+<span class="fc" id="L264">          initializeClass(classPool, candidateClass);</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">          if (!hasStamp(transformer, candidateClass) &amp;&amp; transformer</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">                  .shouldTransform(candidateClass)) {</span>
+<span class="fc" id="L267">            transformer.applyTransformations(candidateClass);</span>
+<span class="fc" id="L268">            applyStamp(transformer, candidateClass);</span>
+            // #48
+<span class="fc bfc" id="L270" title="All 2 branches covered.">            for (final CtClass nestedClass : candidateClass.getNestedClasses()) {</span>
+<span class="fc bfc" id="L271" title="All 4 branches covered.">              if (!nestedClass.isModified() || hasStamp(transformer, nestedClass)) {</span>
+<span class="fc" id="L272">                continue;</span>
+              }
+<span class="fc" id="L274">              final CtClass nestedCtClass = classPool.get(nestedClass.getName());</span>
+<span class="fc" id="L275">              initializeClass(classPool, nestedCtClass);</span>
+<span class="fc" id="L276">              applyStamp(transformer, nestedCtClass);</span>
+<span class="fc" id="L277">              nestedCtClass.writeFile(outDirectory);</span>
+            }
+<span class="fc" id="L279">            candidateClass.writeFile(outDirectory);</span>
+<span class="fc" id="L280">            LOGGER.debug(&quot;Class {} instrumented by {}&quot;, className, getName(transformer));</span>
+<span class="fc" id="L281">            ++classCounter;</span>
+          }
+<span class="fc" id="L283">        } catch (final NotFoundException e) {</span>
+<span class="fc" id="L284">          LOGGER.warn(&quot;Class {} could not be resolved due to dependencies not found on &quot;</span>
+                      + &quot;current classpath (usually your class depends on \&quot;provided\&quot;&quot;
+                      + &quot; scoped dependencies).&quot;, className);
+<span class="fc" id="L287">        } catch (final IOException | CannotCompileException | JavassistBuildException ex) {</span>
+          // EOFException → IOException...
+<span class="fc" id="L289">          LOGGER.error(&quot;Class {} could not be instrumented due to initialize FAILED.&quot;,</span>
+                       className,
+                       ex);
+<span class="fc" id="L292">        }</span>
+<span class="fc" id="L293">      }</span>
+<span class="fc" id="L294">      LOGGER.info(&quot;#{} classes instrumented by {}&quot;, classCounter, getName(transformer));</span>
+<span class="fc" id="L295">    } catch (final NotFoundException e) {</span>
+<span class="fc" id="L296">      throw new RuntimeException(e.getMessage(), e);</span>
+<span class="fc" id="L297">    }</span>
+<span class="fc" id="L298">  }</span>
+
+  /**
+   * Evaluates and returns the output directory.
+   *
+   * &lt;p&gt;
+   * If the passed {@code outputDir} is {@code null} or empty, the passed {@code inputDir} otherwise
+   * the {@code outputDir} will returned.
+   *
+   * @param outputDir could be {@code null} or empty
+   * @param inputDir must not be {@code null}
+   *
+   * @return never {@code null}
+   *
+   * @throws NullPointerException if passed {@code inputDir} is {@code null}
+   * @since 1.2.0
+   */
+  protected String evaluateOutputDirectory(final String outputDir, final String inputDir) {
+<span class="fc bfc" id="L316" title="All 4 branches covered.">    return outputDir != null &amp;&amp; !outputDir.trim().isEmpty() ? outputDir : inputDir.trim();</span>
+  }
+
+  /**
+   * Creates a new instance of a {@link ClassPool}.
+   *
+   * @return never {@code null}
+   *
+   * @since 1.2.0
+   */
+  protected ClassPool buildClassPool() {
+    // create new classpool for transform; don't blow up the default
+<span class="fc" id="L328">    return new ClassPool(ClassPool.getDefault());</span>
+  }
+
+  /**
+   * Configure the passed instance of a {@link ClassPool} and append required class pathes on it.
+   *
+   * @param classPool must not be {@code null}
+   * @param inputDir must not be {@code null}
+   *
+   * @return never {@code null}
+   *
+   * @throws NotFoundException if passed {@code classPool} is {@code null} or if passed
+   *         {@code inputDir} is a JAR or ZIP and not found.
+   * @throws NullPointerException if passed {@code inputDir} is {@code null}
+   * @since 1.2.0
+   */
+  protected ClassPool configureClassPool(final ClassPool classPool, final String inputDir)
+          throws NotFoundException {
+<span class="fc" id="L346">    classPool.childFirstLookup = true;</span>
+<span class="fc" id="L347">    classPool.appendClassPath(inputDir);</span>
+<span class="fc" id="L348">    classPool.appendClassPath(new LoaderClassPath(Thread.currentThread().getContextClassLoader()));</span>
+<span class="fc" id="L349">    classPool.appendSystemPath();</span>
+<span class="fc" id="L350">    debugClassLoader(classPool);</span>
+<span class="fc" id="L351">    return classPool;</span>
+  }
+
+  /**
+   * Search for class files (file extension: {@code .class}) on the passed {@code directory}.
+   * &lt;p&gt;
+   * Note: The passed directory name must exist and readable.
+   * &lt;/p&gt;
+   *
+   * @param directory must nor be {@code null}
+   *
+   * @return iterator of full qualified class names and never {@code null}
+   *
+   * @throws NullPointerException if passed {@code directory} is {@code null}.
+   * @see SuffixFileFilter
+   * @see TrueFileFilter
+   * @see FileUtils#iterateFiles(File, IOFileFilter, IOFileFilter)
+   * @see ClassnameExtractor#iterateClassnames(File, Iterator)
+   */
+  protected Iterator&lt;String&gt; iterateClassnames(final String directory) {
+<span class="fc" id="L371">    final File dir = new File(directory);</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">    if (!dir.exists()) {</span>
+<span class="fc" id="L373">      return Collections.emptyIterator();</span>
+    }
+<span class="fc" id="L375">    final String[] extensions = {&quot;.class&quot;};</span>
+<span class="fc" id="L376">    final IOFileFilter fileFilter = new SuffixFileFilter(extensions);</span>
+<span class="fc" id="L377">    final IOFileFilter dirFilter = TrueFileFilter.INSTANCE;</span>
+<span class="fc" id="L378">    return ClassnameExtractor</span>
+<span class="fc" id="L379">            .iterateClassnames(dir, FileUtils.iterateFiles(dir, fileFilter, dirFilter));</span>
+  }
+
+  /**
+   * Apply a &quot;stamp&quot; to a class to indicate it has been modified.
+   * &lt;p&gt;
+   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any
+   * class overriding this method should also override {@link #hasStamp(IClassTransformer,
+   * CtClass)}.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code
+   *         null}.
+   * @param candidateClass the class to mark/stamp must not be {@code null}.
+   *
+   * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
+   * @throws CannotCompileException by {@link CtClass#addField(CtField,
+   *         CtField.Initializer)}
+   * @see #createStampField(IClassTransformer, CtClass)
+   * @see CtClass#addField(CtField, CtField.Initializer)
+   * @since 2.0.0
+   */
+  protected void applyStamp(IClassTransformer transformer, CtClass candidateClass)
+          throws CannotCompileException {
+<span class="fc" id="L403">    candidateClass</span>
+<span class="fc" id="L404">            .addField(createStampField(transformer, candidateClass), Initializer.constant(true));</span>
+<span class="fc" id="L405">  }</span>
+
+  /**
+   * Remove a &quot;stamp&quot; from a class if the &quot;stamp&quot; field is available.
+   * &lt;p&gt;
+   * By default, this method removes a boolean field named {@value #STAMP_FIELD_NAME}. Any class
+   * overriding this method should also override {@link #hasStamp(IClassTransformer, CtClass)}.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code
+   *         null}.
+   * @param candidateClass the class to remove the mark/stamp from must not be {@code null}
+   *
+   * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
+   * @throws CannotCompileException by {@link CtClass#removeField(CtField)}
+   * @see #createStampField(IClassTransformer, CtClass)
+   * @see CtClass#removeField(CtField)
+   * @since 2.0.0
+   */
+  protected void removeStamp(IClassTransformer transformer, CtClass candidateClass)
+          throws CannotCompileException {
+    try {
+<span class="fc" id="L427">      candidateClass.removeField(createStampField(transformer, candidateClass));</span>
+<span class="fc" id="L428">    } catch (final NotFoundException e) {</span>
+      // ignore; mission accomplished.
+<span class="fc" id="L430">    }</span>
+<span class="fc" id="L431">  }</span>
+
+  /**
+   * Indicates whether a class holds a stamp or not.
+   * &lt;p&gt;
+   * By default, this method uses a boolean field named {@value #STAMP_FIELD_NAME} as the stamp. Any
+   * class overriding this method should also override {@link #applyStamp(IClassTransformer,
+   * CtClass)} and {@link #removeStamp(IClassTransformer, CtClass) }.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code
+   *         null}.
+   * @param candidateClass the class to check must not be {@code null}.
+   *
+   * @return {@code true} if the class owns the stamp, otherwise {@code false}.
+   *
+   * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
+   * @see CtClass#getDeclaredField(String)
+   * @since 2.0.0
+   */
+  protected boolean hasStamp(final IClassTransformer transformer, CtClass candidateClass) {
+    boolean hasStamp;
+    try {
+<span class="fc bfc" id="L454" title="All 2 branches covered.">      hasStamp = null != candidateClass.getDeclaredField(createStampFieldName(transformer));</span>
+<span class="fc" id="L455">    } catch (NotFoundException e) {</span>
+<span class="fc" id="L456">      hasStamp = false;</span>
+<span class="fc" id="L457">    }</span>
+<span class="pc bpc" id="L458" title="1 of 2 branches missed.">    if (LOGGER.isDebugEnabled()) {</span>
+<span class="nc" id="L459">      LOGGER.debug(&quot;Stamp {}{} found in class {}&quot;,</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                   createStampFieldName(transformer),</span>
+                   (hasStamp ? &quot;&quot; : &quot; NOT&quot;),
+<span class="nc" id="L462">                   candidateClass.getName());</span>
+    }
+<span class="fc" id="L464">    return hasStamp;</span>
+  }
+
+  /**
+   * Creates the name of the stamp field.
+   * &lt;p&gt;
+   * This implementation appends {@value #STAMP_FIELD_NAME} with the full qualified class name and
+   * replaces all non-word characters (like '.') with '_'.
+   * &lt;/p&gt;
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code
+   *         null}.
+   *
+   * @return never {@code null} or empty.
+   */
+  private String createStampFieldName(final IClassTransformer transformer) {
+<span class="fc" id="L480">    return STAMP_FIELD_NAME + transformer.getClass().getName().replaceAll(&quot;\\W&quot;, &quot;_&quot;);</span>
+  }
+
+  /**
+   * Creates a {@link CtField} instance associated with the passed {@code candidateClass}.
+   *
+   * @param transformer The transformer that will apply transformations must not be {@code
+   *         null}.
+   * @param candidateClass must not be {@code null}
+   *
+   * @return never {@code null}
+   *
+   * @throws NullPointerException if passed {@code candidateClass} is {@code null}.
+   * @throws CannotCompileException field could not created
+   * @see CtField
+   */
+  private CtField createStampField(IClassTransformer transformer, final CtClass candidateClass)
+          throws CannotCompileException {
+<span class="fc" id="L498">    int stampModifiers = AccessFlag.STATIC | AccessFlag.FINAL;</span>
+<span class="fc bfc" id="L499" title="All 2 branches covered.">    if (!candidateClass.isInterface()) {</span>
+<span class="fc" id="L500">      stampModifiers |= AccessFlag.PRIVATE;</span>
+    } else {
+<span class="fc" id="L502">      stampModifiers |= AccessFlag.PUBLIC;</span>
+    }
+<span class="fc" id="L504">    final CtField stampField = new CtField(CtClass.booleanType,</span>
+<span class="fc" id="L505">                                           createStampFieldName(transformer),</span>
+                                           candidateClass);
+<span class="fc" id="L507">    stampField.setModifiers(stampModifiers);</span>
+<span class="fc" id="L508">    return stampField;</span>
+  }
+
+  private void initializeClass(final ClassPool classPool, final CtClass candidateClass)
+          throws NotFoundException {
+<span class="fc" id="L513">    debugClassFile(candidateClass.getClassFile2());</span>
+    // TODO hack to initialize class to avoid further NotFoundException (what's the right way of
+    // doing this?)
+<span class="fc" id="L516">    candidateClass.subtypeOf(classPool.get(Object.class.getName()));</span>
+<span class="fc" id="L517">  }</span>
+
+  private String getName(IClassTransformer transformer) {
+<span class="fc" id="L520">    return transformer.getClass().getName();</span>
+  }
+
+  private void debugClassFile(final ClassFile classFile) {
+<span class="pc bpc" id="L524" title="1 of 2 branches missed.">    if (!LOGGER.isDebugEnabled()) {</span>
+<span class="fc" id="L525">      return;</span>
+    }
+<span class="nc" id="L527">    LOGGER.debug(&quot; - class: {}&quot;, classFile.getName());</span>
+<span class="nc" id="L528">    LOGGER.debug(&quot; -- Java version: {}.{}&quot;,</span>
+<span class="nc" id="L529">                 classFile.getMajorVersion(),</span>
+<span class="nc" id="L530">                 classFile.getMinorVersion());</span>
+<span class="nc" id="L531">    LOGGER.debug(&quot; -- interface: {} abstract: {} final: {}&quot;,</span>
+<span class="nc" id="L532">                 classFile.isInterface(),</span>
+<span class="nc" id="L533">                 classFile.isAbstract(),</span>
+<span class="nc" id="L534">                 classFile.isFinal());</span>
+<span class="nc" id="L535">    LOGGER.debug(&quot; -- extends class: {}&quot;, classFile.getSuperclass());</span>
+<span class="nc" id="L536">    LOGGER.debug(&quot; -- implements interfaces: {}&quot;, Arrays.deepToString(classFile.getInterfaces()));</span>
+<span class="nc" id="L537">  }</span>
+
+  private void debugClassLoader(final ClassPool classPool) {
+<span class="pc bpc" id="L540" title="1 of 2 branches missed.">    if (!LOGGER.isDebugEnabled()) {</span>
+<span class="fc" id="L541">      return;</span>
+    }
+<span class="nc" id="L543">    LOGGER.debug(&quot; - classPool: {}&quot;, classPool.toString());</span>
+<span class="nc" id="L544">    ClassLoader classLoader = classPool.getClassLoader();</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">    while (classLoader != null) {</span>
+<span class="nc" id="L546">      LOGGER.debug(&quot; -- {}: {}&quot;, classLoader.getClass().getName(), classLoader.toString());</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">      if (classLoader instanceof URLClassLoader) {</span>
+<span class="nc" id="L548">        LOGGER.debug(&quot; --- urls: {}&quot;, Arrays.deepToString(((URLClassLoader)classLoader).getURLs()));</span>
+      }
+<span class="nc" id="L550">      classLoader = classLoader.getParent();</span>
+    }
+<span class="nc" id="L552">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JavassistMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Javassist Maven Plugin</a> &gt; <a href="index.source.html" class="el_package">de.icongmbh.oss.maven.plugin.javassist</a> &gt; <span class="el_source">JavassistMojo.java</span></div><h1>JavassistMojo.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2012 http://github.com/drochetti/
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.icongmbh.oss.maven.plugin.javassist;
+
+import static java.lang.Thread.currentThread;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+
+import javassist.build.IClassTransformer;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Maven plugin that will apply &lt;a
+ * href=&quot;http://www.javassist.org/&quot;&gt;Javassist&lt;/a&gt;
+ * class transformations on compiled classes (bytecode instrumentation).
+ *
+ * &lt;p&gt;
+ * The real modifications of the bytecode are performed by one or more instances of the configured
+ * {@link IClassTransformer}.
+ * &lt;/p&gt;
+ * &lt;p&gt;
+ * Example plugin configuration :
+ * &lt;/p&gt;
+ *
+ * &lt;pre&gt;
+ * {@code
+ * ...
+ * &lt;configuration&gt;
+ *   &lt;includeTestClasses&gt;false&lt;/includeTestClasses&gt;
+ *   &lt;buildDir&gt;bin/classes&lt;/buildDir&gt;
+ *   &lt;testBuildDir&gt;bin/test-classes&lt;/testBuildDir&gt;
+ *   &lt;transformerClasses&gt;
+ *     &lt;transformerClass&gt;
+ *      &lt;className&gt;
+ *       de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+ *      &lt;/className&gt;
+ *     &lt;/transformerClass&gt;
+ *   &lt;/transformerClasses&gt;
+ * &lt;/configuration&gt;
+ * ...
+ * }
+ * &lt;/pre&gt;
+ *
+ * @since 1.0.0
+ */
+// @formatter:off
+@Mojo(name = &quot;javassist&quot;, defaultPhase = LifecyclePhase.PROCESS_CLASSES,
+      requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+// @formatter:on
+<span class="fc" id="L80">public class JavassistMojo extends AbstractMojo {</span>
+
+<span class="fc" id="L82">  private static final Logger LOGGER = LoggerFactory.getLogger(JavassistMojo.class);</span>
+
+<span class="fc" id="L84">  private static final Class&lt;IClassTransformer&gt; TRANSFORMER_TYPE = IClassTransformer.class;</span>
+
+  // @formatter:off
+  @Parameter(defaultValue = &quot;${project}&quot;, property = &quot;javassist.project&quot;, required = true,
+             readonly = true)
+  // @formatter:on
+  private MavenProject project;
+
+  /**
+   * Skips all processing performed by this goal.
+   *
+   * &lt;pre&gt;
+   * {@code
+   * ...
+   * &lt;configuration&gt;
+   *   &lt;skip&gt;false&lt;/skip&gt;
+   * &lt;/configuration&gt;
+   * ...
+   * }
+   * &lt;/pre&gt;
+   */
+  @Parameter(defaultValue = &quot;false&quot;, property = &quot;javassist.skip&quot;, required = false)
+  private boolean skip;
+
+  /**
+   * Whether or not to include test classes to be processed by declared transformers.
+   *
+   * &lt;pre&gt;
+   * {@code
+   * ...
+   * &lt;configuration&gt;
+   *   &lt;includeTestClasses&gt;false&lt;/includeTestClasses&gt;
+   * &lt;/configuration&gt;
+   * ...
+   * }
+   * &lt;/pre&gt;
+   */
+  @Parameter(defaultValue = &quot;true&quot;, property = &quot;javassist.includeTestClasses&quot;, required = true)
+  private Boolean includeTestClasses;
+
+  /**
+   * Configure one or more class transformer.
+   *
+   * &lt;pre&gt;
+   * {@code
+   * ...
+   * &lt;configuration&gt;
+   *   &lt;transformerClasses&gt;
+   *     &lt;transformerClass&gt;
+   *      &lt;className&gt;
+   *       de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+   *      &lt;/className&gt;
+   *     &lt;/transformerClass&gt;
+   *   &lt;/transformerClasses&gt;
+   * &lt;/configuration&gt;
+   * ...
+   * }
+   * &lt;/pre&gt;
+   */
+  @Parameter(property = &quot;javassist.transformerClasses&quot;, required = true)
+  private ClassTransformerConfiguration[] transformerClasses;
+
+  /**
+   * Allows to customize the build directory of the project, used for both finding classes to
+   * transform and output them once transformed.
+   *
+   * &lt;p&gt;
+   * The path must be either absolute or relative to project base directory.
+   * &lt;/p&gt;
+   *
+   * &lt;pre&gt;
+   * {@code
+   * ...
+   * &lt;configuration&gt;
+   *   &lt;buildDir&gt;bin/classes&lt;/buildDir&gt;
+   * &lt;/configuration&gt;
+   * ...
+   * }
+   * &lt;/pre&gt;
+   */
+  @Parameter(defaultValue = &quot;target/classes&quot;, property = &quot;javassist.buildDir&quot;, required = false)
+  private String buildDir;
+
+  /**
+   * Allows to customize the build directory of the tests of the project, used for both finding
+   * classes to transform and output them once transformed.
+   *
+   * &lt;p&gt;
+   * The path must be either absolute or relative to project base directory.
+   * &lt;/p&gt;
+   *
+   * &lt;pre&gt;
+   * {@code
+   * ...
+   * &lt;configuration&gt;
+   *   &lt;testBuildDir&gt;bin/test-classes&lt;/testBuildDir&gt;
+   * &lt;/configuration&gt;
+   * ...
+   * }
+   * &lt;/pre&gt;
+   */
+  // @formatter:off
+  @Parameter(defaultValue = &quot;target/test-classes&quot;, property = &quot;javassist.testBuildDir&quot;,
+          required = false)
+  // @formatter:on
+  private String testBuildDir;
+
+  @Override
+  public void execute() throws MojoExecutionException {
+<span class="fc bfc" id="L193" title="All 2 branches covered.">    if (skip) {</span>
+<span class="fc" id="L194">      LOGGER.info(&quot;Skipping executing.&quot;);</span>
+<span class="fc" id="L195">      return;</span>
+    }
+
+<span class="fc" id="L198">    final ClassLoader originalContextClassLoader = currentThread().getContextClassLoader();</span>
+
+    try {
+<span class="fc" id="L201">      final List&lt;URL&gt; classPath = new ArrayList&lt;URL&gt;();</span>
+
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">      for (final String runtimeResource : project.getRuntimeClasspathElements()) {</span>
+<span class="nc" id="L204">        classPath.add(resolveUrl(runtimeResource));</span>
+<span class="nc" id="L205">      }</span>
+
+<span class="fc bfc" id="L207" title="All 2 branches covered.">      final String inputDirectory = (null == buildDir) ? project.getBuild().getOutputDirectory()</span>
+<span class="fc" id="L208">              : computeDir(buildDir);</span>
+
+<span class="fc" id="L210">      classPath.add(resolveUrl(inputDirectory));</span>
+
+<span class="fc" id="L212">      loadAdditionalClassPath(classPath);</span>
+
+<span class="fc" id="L214">      final JavassistTransformerExecutor executor = new JavassistTransformerExecutor();</span>
+
+<span class="fc bfc" id="L216" title="All 2 branches covered.">      String testInputDirectory = (null == testBuildDir)</span>
+<span class="fc" id="L217">              ? project.getBuild().getTestOutputDirectory() : computeDir(testBuildDir);</span>
+
+<span class="fc" id="L219">      executor.setTransformerClasses(instantiateTransformerClasses(</span>
+<span class="fc" id="L220">                                                                   currentThread()</span>
+<span class="fc" id="L221">                                                                     .getContextClassLoader(),</span>
+                                                                   transformerClasses));
+<span class="fc" id="L223">      executor.setInputDirectory(inputDirectory);</span>
+<span class="fc" id="L224">      executor.setOutputDirectory(inputDirectory);</span>
+<span class="fc" id="L225">      executor.execute();</span>
+
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">      if (includeTestClasses) {</span>
+<span class="nc" id="L228">        classPath.add(resolveUrl(testInputDirectory));</span>
+<span class="nc" id="L229">        executor.setInputDirectory(testInputDirectory);</span>
+<span class="nc" id="L230">        executor.setOutputDirectory(testInputDirectory);</span>
+<span class="nc" id="L231">        executor.execute();</span>
+      }
+
+<span class="nc" id="L234">    } catch (final Exception e) {</span>
+<span class="nc" id="L235">      getLog().error(e.getMessage(), e);</span>
+<span class="nc" id="L236">      throw new MojoExecutionException(e.getMessage(), e);</span>
+    } finally {
+<span class="fc" id="L238">      currentThread().setContextClassLoader(originalContextClassLoader);</span>
+    }
+<span class="fc" id="L240">  }</span>
+
+  private void loadAdditionalClassPath(final List&lt;URL&gt; classPath) {
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">    if (classPath.isEmpty()) {</span>
+<span class="nc" id="L244">      return;</span>
+    }
+<span class="fc" id="L246">    final ClassLoader contextClassLoader = currentThread().getContextClassLoader();</span>
+
+    // @formatter:off
+<span class="fc" id="L249">    final URLClassLoader pluginClassLoader = URLClassLoader.newInstance(</span>
+<span class="fc" id="L250">            classPath.toArray(new URL[classPath.size()]), contextClassLoader);</span>
+    // @formatter:on
+
+<span class="fc" id="L253">    currentThread().setContextClassLoader(pluginClassLoader);</span>
+<span class="fc" id="L254">  }</span>
+
+  private String computeDir(String dir) {
+<span class="fc" id="L257">    File dirFile = new File(dir);</span>
+<span class="pc bpc" id="L258" title="1 of 2 branches missed.">    if (dirFile.isAbsolute()) {</span>
+<span class="nc" id="L259">      return dirFile.getAbsolutePath();</span>
+    } else {
+<span class="fc" id="L261">      return new File(project.getBasedir(), buildDir).getAbsolutePath();</span>
+    }
+  }
+
+  /**
+   * Instantiates and configures the passed transformer classes.
+   *
+   * @param contextClassLoader maybe {@code null}
+   * @param transformerClasses maybe {@code null}
+   * @return array of passed transformer class name instances and never {@code null} but maybe
+   *         empty.
+   * @throws Exception by
+   *           {@link #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)} and
+   *           {@link #configureTransformerInstance(IClassTransformer, Properties)}
+   * @see #instantiateTransformerClass(ClassLoader, ClassTransformerConfiguration)
+   * @see #configureTransformerInstance(IClassTransformer, Properties)
+   */
+  // @formatter:off
+  protected IClassTransformer[] instantiateTransformerClasses(
+          final ClassLoader contextClassLoader,
+          final ClassTransformerConfiguration... transformerClasses) throws Exception {
+    // @formatter:on
+<span class="pc bpc" id="L283" title="2 of 4 branches missed.">    if (null == transformerClasses || transformerClasses.length &lt;= 0) {</span>
+<span class="nc" id="L284">      throw new MojoExecutionException(&quot;Invalid transformer classes passed&quot;);</span>
+    }
+<span class="fc" id="L286">    final List&lt;IClassTransformer&gt; transformerInstances = new LinkedList&lt;IClassTransformer&gt;();</span>
+<span class="fc bfc" id="L287" title="All 2 branches covered.">    for (ClassTransformerConfiguration transformerClass : transformerClasses) {</span>
+<span class="fc" id="L288">      final IClassTransformer transformerInstance = instantiateTransformerClass(contextClassLoader,</span>
+                                                                                transformerClass);
+<span class="fc" id="L290">      configureTransformerInstance(transformerInstance, transformerClass.getProperties());</span>
+<span class="fc" id="L291">      transformerInstances.add(transformerInstance);</span>
+    }
+<span class="fc" id="L293">    return transformerInstances.toArray(new IClassTransformer[transformerInstances.size()]);</span>
+  }
+
+  /**
+   * Instantiate the class passed by {@link ClassTransformerConfiguration} configuration object.
+   *
+   * @param contextClassLoader maybe {@code null}
+   * @param transformerClass must not be {@code null}
+   *
+   * @return new instance of passed transformer class name and never {@code null}
+   *
+   * @throws ClassNotFoundException by {@code transformerClass} {@link Class#forName(String)}.
+   * @throws InstantiationException by {@code transformerClass} {@link Class#forName(String)}.
+   * @throws IllegalAccessException by {@code transformerClass} {@link Class#forName(String)}.
+   * @throws MojoExecutionException if passed {@code transformerClass} is {@code null} or invalid
+   *
+   * @see Class#forName(String, boolean, ClassLoader)
+   */
+  // @formatter:off
+  protected IClassTransformer instantiateTransformerClass(
+          final ClassLoader contextClassLoader,
+          final ClassTransformerConfiguration transformerClass) throws ClassNotFoundException,
+                                                                       InstantiationException,
+                                                                       IllegalAccessException,
+                                                                       MojoExecutionException {
+    // @formatter:on
+<span class="pc bpc" id="L319" title="2 of 4 branches missed.">    if (null == transformerClass || null == transformerClass.getClassName()</span>
+<span class="pc bpc" id="L320" title="1 of 2 branches missed.">        || transformerClass.getClassName().trim().isEmpty()) {</span>
+<span class="nc" id="L321">      throw new MojoExecutionException(&quot;Invalid transformer class name passed&quot;);</span>
+    }
+<span class="fc" id="L323">    final Class&lt;?&gt; transformerClassInstance = Class.forName(transformerClass.getClassName().trim(),</span>
+                                                            true,
+                                                            contextClassLoader);
+<span class="pc bpc" id="L326" title="1 of 2 branches missed.">    if (TRANSFORMER_TYPE.isAssignableFrom(transformerClassInstance)) {</span>
+<span class="fc" id="L327">      return TRANSFORMER_TYPE.cast(transformerClassInstance.newInstance());</span>
+    } else {
+<span class="nc" id="L329">      throw new MojoExecutionException(&quot;Transformer class must inherit from &quot;</span>
+<span class="nc" id="L330">                                       + TRANSFORMER_TYPE.getName());</span>
+    }
+  }
+
+  /**
+   * Configure the passed {@link ClassTransformer} instance using the passed {@link Properties}.
+   *
+   * @param transformerInstance maybe {@code null}
+   * @param properties maybe {@code null} or empty
+   *
+   * @throws Exception by {@link ClassTransformer#configure(Properties)}
+   */
+  protected void configureTransformerInstance(final IClassTransformer transformerInstance,
+                                              final Properties properties) throws Exception {
+<span class="pc bpc" id="L344" title="2 of 4 branches missed.">    if (null == transformerInstance || !(transformerInstance instanceof ClassTransformer)) {</span>
+<span class="nc" id="L345">      return;</span>
+    }
+<span class="fc" id="L347">    ((ClassTransformer)transformerInstance).configure(properties);</span>
+<span class="fc" id="L348">  }</span>
+
+  private URL resolveUrl(final String resource) {
+    try {
+<span class="fc" id="L352">      return new File(resource).toURI().toURL();</span>
+<span class="nc" id="L353">    } catch (final MalformedURLException e) {</span>
+<span class="nc" id="L354">      throw new RuntimeException(e.getMessage(), e);</span>
+    }
+  }
+
+  /**
+   * Signals whether or not to skip the plugin execution.
+   *
+   * @return {@code true} if configuration option is set otherwise {@code false}
+   */
+  public boolean isSkip() {
+<span class="fc" id="L364">    return skip;</span>
+  }
+
+  /**
+   * Whether or not to include test classes in class transformation.
+   *
+   * @return {@code true} if configuration option is set otherwise {@code false} and never
+   *         {@code null}
+   */
+  public Boolean getIncludeTestClasses() {
+<span class="pc bpc" id="L374" title="1 of 2 branches missed.">    return null == includeTestClasses ? Boolean.FALSE : includeTestClasses;</span>
+  }
+
+  /**
+   * The configured transformer classes.
+   *
+   * @return all configured transformer classes and never {@code null} but maybe empty.
+   */
+  public ClassTransformerConfiguration[] getTransformerClasses() {
+<span class="pc bpc" id="L383" title="1 of 2 branches missed.">    return (null == this.transformerClasses) ? new ClassTransformerConfiguration[0]</span>
+<span class="fc" id="L384">            : this.transformerClasses.clone();</span>
+  }
+
+  /**
+   * The build directory of the project, used for both finding classes to
+   * transform and output them once transformed.
+   *
+   * @return never {@code null}
+   */
+  public String getBuildDir() {
+<span class="fc" id="L394">    return buildDir;</span>
+  }
+
+  /**
+   * The build directory of the tests of the project, used for both finding
+   * classes to transform and output them once transformed.
+   *
+   * @return never {@code null}
+   */
+  public String getTestBuildDir() {
+<span class="fc" id="L404">    return testBuildDir;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

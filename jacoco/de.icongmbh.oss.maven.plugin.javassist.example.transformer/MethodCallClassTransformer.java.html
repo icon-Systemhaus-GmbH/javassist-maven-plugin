@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MethodCallClassTransformer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Javassist Maven Plugin</a> &gt; <a href="index.source.html" class="el_package">de.icongmbh.oss.maven.plugin.javassist.example.transformer</a> &gt; <span class="el_source">MethodCallClassTransformer.java</span></div><h1>MethodCallClassTransformer.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013 https://github.com/barthel
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.icongmbh.oss.maven.plugin.javassist.example.transformer;
+
+import java.util.Properties;
+
+import javassist.CannotCompileException;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtField.Initializer;
+import javassist.NotFoundException;
+import javassist.build.JavassistBuildException;
+import javassist.bytecode.AccessFlag;
+import javassist.expr.ExprEditor;
+import javassist.expr.MethodCall;
+import de.icongmbh.oss.maven.plugin.javassist.ClassTransformer;
+
+/**
+ * Example of {@link ClassTransformer} implementation.
+ *
+ * &lt;p&gt;
+ * This example shows a full functional implementation of an {@link ClassTransformer}.
+ * &lt;br&gt;
+ * The transformer inject bytecode around configurable method calls.
+ * &lt;/p&gt;
+ *
+ * &lt;pre&gt;
+ * {@code
+ *
+ * &lt;transformerClass&gt;
+ *  &lt;className&gt;
+ *    de.icongmbh.oss.maven.plugin.javassist.example.transformer.MethodCallClassTransformer
+ *  &lt;/className&gt;
+ *  &lt;properties&gt;
+ *    &lt;property&gt;
+ *      &lt;name&gt;my.example.App#doSomthing&lt;/name&gt;
+ *      &lt;value&gt;{ $2=&quot;injected value for sec. parameter&quot;; $_ = $proceed($$); }&lt;/value&gt;
+ *    &lt;/property&gt;
+ *  &lt;/properties&gt;
+ * &lt;/transformerClass&gt;
+ * }
+ * &lt;/pre&gt;
+ *
+ * @see &lt;a href=&quot;https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before&quot;&gt;
+ *      https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before&lt;/a&gt;
+ *
+ * @since 1.1.0
+ */
+<span class="nc" id="L63">public class MethodCallClassTransformer extends ClassTransformer {</span>
+
+  /**
+   * This token separates the class and the method name in {@code className}.
+   * &lt;p&gt;
+   * {@code my.example.App}&lt;b&gt;{@code #}&lt;/b&gt;{@code doSomthing}
+   * &lt;/p&gt;
+   */
+  public static final char METHOD_TOKEN = '#';
+
+  /**
+   * Start identifier for the Javassist statement.
+   */
+  public static final char JAVASSIST_STATEMENT_START_TOKEN = '{';
+
+  /**
+   * End identifier for the Javassist statement.
+   */
+  public static final char JAVASSIST_STATEMENT_END_TOKEN = '}';
+
+  /**
+   * The, so called, &amp;quot;stamp&amp;quot; to mark already transformed classes.
+   */
+<span class="nc" id="L86">  public static final String ALREADY_INTROSPECTED_FIELD_NAME = &quot;__introspected__&quot;</span>
+                                                               + MethodCallClassTransformer.class
+<span class="nc" id="L88">                                                                 .getSimpleName();</span>
+
+  private Properties properties;
+
+  /**
+   * &lt;p&gt;
+   * {@link Properties} entries like the following.
+   * &lt;/p&gt;
+   * &lt;ul&gt;
+   * &lt;li&gt;name: full qualified class name and method name separated by '{@link #METHOD_TOKEN #}'
+   * &lt;li&gt;value: Javassist statement - starts with '{@link #JAVASSIST_STATEMENT_START_TOKEN &amp;#123;}'
+   * and ends with '{@link #JAVASSIST_STATEMENT_END_TOKEN &amp;#125;}'
+   * &lt;/ul&gt;
+   *
+   * &lt;pre&gt;
+   * {@code
+   *   my.example.App#doSomthing={ $2=&quot;injected value for sec. parameter&quot;; $_ = $proceed($$); }
+   * }
+   * &lt;/pre&gt;
+   *
+   * @param properties maybe {@code null}
+   * @throws Exception provided by interface
+   *
+   * @see &lt;a href=&quot;https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before&quot;&gt;
+   *      https://jboss-javassist.github.io/javassist/tutorial/tutorial2.html#before&lt;/a&gt;
+   */
+  @Override
+  public void configure(final Properties properties) throws Exception {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    this.properties = (null == properties) ? new Properties() : (Properties)properties.clone();</span>
+<span class="nc" id="L117">  }</span>
+
+  @Override
+  public boolean shouldTransform(final CtClass candidateClass) throws JavassistBuildException {
+<span class="nc bnc" id="L121" title="All 4 branches missed.">    return candidateClass != null &amp;&amp; !isIntrospected(candidateClass);</span>
+  }
+
+  @Override
+  public void applyTransformations(final CtClass classToTransform) throws JavassistBuildException {
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    if (null == classToTransform) {</span>
+<span class="nc" id="L127">      return;</span>
+    }
+    try {
+<span class="nc" id="L130">      classToTransform.instrument(new ExprEditor() {</span>
+        @Override
+        public void edit(final MethodCall method) throws CannotCompileException {
+<span class="nc" id="L133">          final String statement = getStatement(method.getClassName(), method.getMethodName());</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">          if (statement != null) {</span>
+            try {
+<span class="nc" id="L136">              method.replace(statement);</span>
+<span class="nc" id="L137">            } catch (final CannotCompileException e) {</span>
+<span class="nc" id="L138">              throw new CannotCompileException(String</span>
+<span class="nc" id="L139">                .format(&quot;Compile statement '%1$s' FAILED with: %2$s&quot;, statement, e.getMessage()),</span>
+                                               e);
+<span class="nc" id="L141">            }</span>
+          }
+<span class="nc" id="L143">        }</span>
+      });
+      // insert internal introspection state field
+<span class="nc" id="L146">      final CtField introspectedField = new CtField(CtClass.booleanType,</span>
+                                                    ALREADY_INTROSPECTED_FIELD_NAME,
+                                                    classToTransform);
+<span class="nc" id="L149">      introspectedField.setModifiers(AccessFlag.PUBLIC | AccessFlag.STATIC | AccessFlag.FINAL);</span>
+<span class="nc" id="L150">      classToTransform.addField(introspectedField, Initializer.constant(true));</span>
+<span class="nc" id="L151">    } catch (CannotCompileException e) {</span>
+<span class="nc" id="L152">      throw new JavassistBuildException(e);</span>
+<span class="nc" id="L153">    }</span>
+<span class="nc" id="L154">  }</span>
+
+  private boolean isIntrospected(final CtClass candidateClass) {
+    try {
+<span class="nc" id="L158">      candidateClass.getField(ALREADY_INTROSPECTED_FIELD_NAME);</span>
+<span class="nc" id="L159">      return true;</span>
+<span class="nc" id="L160">    } catch (final NotFoundException e) {</span>
+<span class="nc" id="L161">      return false;</span>
+    }
+  }
+
+  // TODO: find better implementation
+  private String getStatement(final String className, final String methodName) {
+<span class="nc bnc" id="L167" title="All 6 branches missed.">    if (null == properties || (null == className &amp;&amp; null == methodName)) {</span>
+<span class="nc" id="L168">      return null;</span>
+    }
+<span class="nc" id="L170">    String statement = this.properties.getProperty(className + METHOD_TOKEN + methodName);</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (null == statement) {</span>
+<span class="nc" id="L172">      statement = this.properties.getProperty(className + METHOD_TOKEN);</span>
+    }
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    return null == statement ? this.properties.getProperty(METHOD_TOKEN + methodName) : statement;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

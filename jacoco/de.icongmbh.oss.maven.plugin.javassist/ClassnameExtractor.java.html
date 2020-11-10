@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClassnameExtractor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Javassist Maven Plugin</a> &gt; <a href="index.source.html" class="el_package">de.icongmbh.oss.maven.plugin.javassist</a> &gt; <span class="el_source">ClassnameExtractor.java</span></div><h1>ClassnameExtractor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2013 https://github.com/barthel
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package de.icongmbh.oss.maven.plugin.javassist;
+
+import static org.apache.commons.io.FilenameUtils.removeExtension;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * Provides methods for extract class name from file name.
+ *
+ * @since 1.1.0
+ */
+public class ClassnameExtractor {
+
+  private ClassnameExtractor() {
+    // private constructor for utility class
+  }
+
+  /**
+   * Remove parent directory from file name and replace directory separator with dots.
+   *
+   * &lt;ul&gt;
+   * &lt;li&gt;parentDirectory: {@code /tmp/my/parent/src/}&lt;/li&gt;
+   * &lt;li&gt;classFile: {@code /tmp/my/parent/src/foo/bar/MyApp.class}&lt;/li&gt;
+   * &lt;/ul&gt;
+   * returns: {@code foo.bar.MyApp}
+   *
+   * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+   * @param classFile to extract the name from. Maybe {@code null}
+   * @return class name extracted from file name or {@code null}
+   * @throws IOException by file operations
+   */
+  public static String extractClassNameFromFile(final File parentDirectory,
+                                                final File classFile) throws IOException {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (null == classFile) {</span>
+<span class="nc" id="L57">      return null;</span>
+    }
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">    final String qualifiedFileName = parentDirectory != null</span>
+<span class="fc" id="L60">            ? classFile.getCanonicalPath()</span>
+<span class="pc" id="L61">              .substring(parentDirectory.getCanonicalPath().length() + 1)</span>
+<span class="pc" id="L62">            : classFile.getCanonicalPath();</span>
+<span class="fc" id="L63">    return removeExtension(qualifiedFileName.replace(File.separator, &quot;.&quot;));</span>
+  }
+
+  /**
+   * Iterate over the class files and remove the parent directory from file name and replace
+   * directory separator with dots.
+   *
+   * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+   * @param classFiles array to extract the names from. Must not be {@code null}.
+   * @return iterator of full qualified class names based on passed classFiles
+   * @see #iterateClassnames(File, Iterator)
+   */
+  public static Iterator&lt;String&gt; iterateClassnames(final File parentDirectory,
+                                                   final File... classFiles) {
+<span class="nc" id="L77">    return iterateClassnames(parentDirectory, Arrays.asList(classFiles).iterator());</span>
+  }
+
+  /**
+   * Wrapping the iterator (as reference) of class file names and extract full qualified class name
+   * on
+   * {@link Iterator#next()}.
+   * &lt;p&gt;
+   * It is possible that {@link Iterator#hasNext()} returns {@code true} and {@link Iterator#next()}
+   * returns {@code null}.
+   * &lt;/p&gt;
+   *
+   * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+   * @param classFileIterator to extract the names from. Must not be {@code null}.
+   * @return iterator of full qualified class names based on passed classFiles or {@code null}
+   * @see #extractClassNameFromFile(File, File)
+   */
+  // DANGEROUS call by reference
+  public static Iterator&lt;String&gt; iterateClassnames(final File parentDirectory,
+                                                   final Iterator&lt;File&gt; classFileIterator) {
+<span class="fc" id="L97">    return new Iterator&lt;String&gt;() {</span>
+
+      @Override
+      public boolean hasNext() {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        return classFileIterator == null ? false : classFileIterator.hasNext();</span>
+      }
+
+      @Override
+      public String next() {
+<span class="fc" id="L106">        final File classFile = classFileIterator.next();</span>
+        try {
+          // possible returns null
+<span class="fc" id="L109">          return extractClassNameFromFile(parentDirectory, classFile);</span>
+<span class="nc" id="L110">        } catch (final IOException e) {</span>
+<span class="nc" id="L111">          throw new RuntimeException(e.getMessage());</span>
+        }
+      }
+
+      @Override
+      public void remove() {
+<span class="fc" id="L117">        classFileIterator.remove();</span>
+<span class="fc" id="L118">      }</span>
+    };
+  }
+
+  /**
+   * Wrapping the list (as reference) of class file names and extract full qualified class name on
+   * {@link Iterator#next()}.
+   * &lt;p&gt;
+   * It is possible that {@link Iterator#hasNext()} returns &lt;code&gt;true&lt;/code&gt; and
+   * {@link Iterator#next()} returns {@code null}.
+   * &lt;/p&gt;
+   *
+   * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+   * @param classFileList to extract the names from. Maybe {@code null}
+   * @return list of full qualified class names based on passed classFiles or {@code null}
+   * @throws IOException by file operations
+   * @see #extractClassNameFromFile(File, File)
+   */
+  // DANGEROUS call by reference
+  public static List&lt;String&gt; listClassnames(final File parentDirectory,
+                                            final List&lt;File&gt; classFileList) throws IOException {
+<span class="pc bpc" id="L139" title="2 of 4 branches missed.">    if (null == classFileList || classFileList.isEmpty()) {</span>
+<span class="nc" id="L140">      return Collections.emptyList();</span>
+    }
+<span class="fc" id="L142">    final List&lt;String&gt; list = new ArrayList&lt;String&gt;(classFileList.size());</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">    for (final File file : classFileList) {</span>
+<span class="fc" id="L144">      list.add(extractClassNameFromFile(parentDirectory, file));</span>
+<span class="fc" id="L145">    }</span>
+<span class="fc" id="L146">    return list;</span>
+  }
+
+  /**
+   * Wrapping the array of class file names and extract full qualified class name on
+   * {@link Iterator#next()}.
+   * &lt;p&gt;
+   * It is possible that {@link Iterator#hasNext()} returns &lt;code&gt;true&lt;/code&gt; and
+   * {@link Iterator#next()} returns {@code null}.
+   * &lt;/p&gt;
+   *
+   * @param parentDirectory to remove from {@code classFile} and maybe {@code null}.
+   * @param classFileList to extract the names from. Maybe {@code null}
+   * @return list of full qualified class names based on passed classFiles or {@code null}
+   * @throws IOException by file operations
+   * @see #extractClassNameFromFile(File, File)
+   */
+  public static List&lt;String&gt; listClassnames(final File parentDirectory,
+                                            final String... classFileList) throws IOException {
+<span class="nc bnc" id="L165" title="All 4 branches missed.">    if (null == classFileList || classFileList.length &lt;= 0) {</span>
+<span class="nc" id="L166">      return Collections.emptyList();</span>
+    }
+<span class="nc" id="L168">    final List&lt;String&gt; list = new ArrayList&lt;String&gt;(classFileList.length);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (final String file : classFileList) {</span>
+<span class="nc" id="L170">      list.add(extractClassNameFromFile(parentDirectory, new File(parentDirectory, file)));</span>
+    }
+<span class="nc" id="L172">    return list;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,10 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,ClassTransformerConfiguration,15,19,3,1,2,5,3,4,1,4
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,ClassTransformer,2,8,0,0,1,3,1,3,1,3
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,ClassnameExtractor.new Iterator() {...},9,30,1,1,2,6,1,4,0,4
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,HelpMojo,893,0,110,0,159,0,71,0,16,0
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,ClassnameExtractor,54,58,10,6,9,13,9,4,2,3
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,JavassistMojo,80,252,14,22,18,56,14,18,0,14
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist,JavassistTransformerExecutor,106,414,9,39,22,110,6,43,0,25
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist.example.transformer,MethodCallClassTransformer,137,0,18,0,26,0,16,0,7,0
+Javassist Maven Plugin,de.icongmbh.oss.maven.plugin.javassist.example.transformer,MethodCallClassTransformer.new ExprEditor() {...},40,0,2,0,9,0,3,0,2,0
