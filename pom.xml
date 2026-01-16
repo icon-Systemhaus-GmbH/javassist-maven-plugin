@@ -116,7 +116,7 @@
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <maven-invoker-plugin.version>3.2.1</maven-invoker-plugin.version>
     <plantuml-maven-plugin.version>1.2</plantuml-maven-plugin.version>
-    <plantuml.version>1.2019.11</plantuml.version>
+    <plantuml.version>1.2026.0</plantuml.version>
     <animal-sniffer-maven-plugin.version>1.19</animal-sniffer-maven-plugin.version>
 
     <commons-io.version>2.8.0</commons-io.version>
